@@ -1,0 +1,22 @@
+{
+  "name": "ark",
+  "version": "0.0.0",
+  "description": "Packages code for the browser as Node modules.",
+  "main": "lib/ark.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dyoder/ark.git"
+  },
+  "keywords": [
+    "node",
+    "npm",
+    "require",
+    "web",
+    "browser"
+  ],
+  "author": "Dan Yoder <danielyoder@gmail.com>",
+  "license": "MIT"
+}
