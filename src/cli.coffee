@@ -19,12 +19,13 @@ error = (message) ->
 command = process.argv[2]
 
 error "No command given." unless command?
-eror "Unrecognized command '#{command}'." unless Ark[command]?
+error "Unrecognized command '#{command}'." unless Ark[command]?
 
-argv = Optimist.parse(process.argv[3..]).argv
+argv = Optimist.parse(process.argv[3..])
+error "Invalid option(s) '#{argv._.join(", ")}'" unless argv._.length == 0
 valid = "s source z static u uglify x extensions".split(" ")
 for key,value of argv
-  error "Invalid option '#{key}'." unless key in valid
+  error "Invalid option '#{key}'." unless key in valid or key = "_"
     
 options = 
   source: argv.s or argv.source

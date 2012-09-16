@@ -1,8 +1,3 @@
-# Not quite sure how to avoid having certain globals
-
-process = null
-global = {}
-
 # 
 # NativeModule
 # 
@@ -10,6 +5,11 @@ global = {}
 #
 
 ( -> 
+
+  process = null
+  global = {}
+
+  global.filesystem = <%- JSON.stringify @filesystem %>
 
   scopes =
     evals:
@@ -24,12 +24,11 @@ global = {}
     platform: "browser"
     moduleLoadList: []
     env: {}
-    # TODO: put the package.json name
-    argv: ["node","/cs/lib/web"]
+    argv: ["node","/"]
     fileSystem: FileSystem
     binding: (scope) ->
      scopes[scope]
-    cwd: () -> "/cs/lib/web"
+    cwd: () -> "/"
 
   
   runInThisContext = process.binding('evals').NodeScript.runInThisContext
@@ -106,12 +105,20 @@ global = {}
   `
 
   #
+  # Bootstrap native modules
+  #
+
+  for name,source in global.filesystem.root.__native
+    NativeModule._source[name] = source
+
+
+  #
   # fs
   #
   
   getFile = (path) ->
     parts = path.split("/")[1..]
-    file = process.fileSystem.root
+    file = global.fileSystem.root
     for part in parts
       if not (file = file[part])
         throw "File not found at '#{path}'"
@@ -119,8 +126,8 @@ global = {}
   
   class Stat
     constructor: (path) -> @file = getFile(path)
-    isDirectory: () -> @file.__meta.type == "directory"
-    isFile: () -> @file.__meta.type == "file"
+    isDirectory: () -> @file.__stat.type == "directory"
+    isFile: () -> @file.__stat.type == "file"
     isSymbolicLink: () -> false
 
   fs =
@@ -252,14 +259,6 @@ global = {}
     }`
   
   
-  #
-  # Bootstrap native modules
-  #
-
-  NativeModule._source["util"] = process.fileSystem.root["util"]
-  NativeModule._source["assert"] = process.fileSystem.root["assert"]
-  NativeModule._source["path"] = process.fileSystem.root["path"]
-  NativeModule._source["module"] = process.fileSystem.root["module"]
   fs_module = new NativeModule("fs")
   fs_module.loaded = true
   fs_module.exports = fs
