@@ -3,14 +3,12 @@ Optimist = require "optimist"
 Ark = require "./ark"
 
 read = (path) -> FileSystem.readFileSync(path,'utf-8')
-usage = read("#{__dirname}/../USAGE")
+usage = read("#{__dirname}/../doc/USAGE")
 
 error = (message) ->
   console.log """
     ERROR: #{message}
     
-    USAGE
-      
     #{usage}
     """
     

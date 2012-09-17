@@ -1,8 +1,12 @@
+Util = require "util"
 Crypto = require "crypto"
 FileSystem = require "fs"
 Path = require "path"
 Eco = require "eco"
 CoffeeScript = require "coffee-script"
+
+
+inspect = (thing) -> Util.inspect(thing)
 
 error = (message) -> throw new Error(message)
 
@@ -12,12 +16,18 @@ stat = (path) -> FileSystem.statSync(path)
 
 md5 = (string) -> Crypto.createHash('md5').update(string,'utf-8').digest("hex")
 
-render = (template,content) -> Eco.render template, content
+base64 = (string) -> new Buffer(string).toString('base64')
+
+render = (template,context) -> Eco.render template, context
+
+compile = (source) -> CoffeeScript.compile source
 
 glob = require "glob"
 
 manifest = (options,callback) ->
+  
   {source,extensions} = options
+  
   glob "#{source}/**/*.{#{extensions}}", {}, (error,paths) ->
     if error
       callback(error)
@@ -31,18 +41,23 @@ manifest = (options,callback) ->
 
 build_index = (manifest) ->
   
-  filesystem = {}
+  root = {}
   content = {}
+  native_modules = {}
   
   resolve = (paths...) ->
     Path.resolve(manifest.source,paths...)
 
+  template = read("#{__dirname}/templates/module.coffee")
+  render_function = (code) ->
+    compile(render(template, code: code))    
+    
   for path in manifest.files
     parts = path.split("/")
     directory_parts = parts[0..-2]
     file_part = parts[-1..][0]
 
-    tmp = filesystem
+    tmp = root
     cwd = []
     for part in directory_parts
       cwd.push << part
@@ -53,24 +68,37 @@ build_index = (manifest) ->
   
     data = read(resolve(path))
     reference = md5(data)
-    content[reference] = data
+    
+    # TODO: hash compiled source (to avoid storing
+    # CoffeeScript source and compiled files)
+    
+    # TODO: support multiple source formats
+    
+    # TODO: render actual functions 
+    # (see render_function above)
+    
+    content[reference] = base64(data)
   
     tmp[file_part] =
       __stat: stat(resolve(path))
       __ref: reference
 
   # add native modules
-  filesystem.__native = {}
   for name in "assert util path module".split(" ")
-    filesystem.__native[name] = read("#{__dirname}/node/#{name}.js")
+    code = read("#{__dirname}/node/#{name}.js")
+    reference = md5(code)
+    native_modules[name] = reference
+    content[reference] = base64(code)
   
-  { root: filesystem, content: content }
+  root: root
+  content: content
+  native_modules: native_modules
   
 
 generate_code = (filesystem) ->
   
   template = read("#{__dirname}/templates/node.coffee")
-  console.log CoffeeScript.compile render template, filesystem: filesystem
+  console.log compile render template, filesystem
 
 Ark =
 
@@ -96,24 +124,3 @@ Ark =
       manifest options, _package
 
 module.exports = Ark
-
-
-# # TODO: I'd love to come up with an elegant way to avoid defining 
-# # anything at global scope here ...
-# 
-# packager "cs/lib/web", (error,filesystem) ->
-#   base64d = new Buffer(JSON.stringify(filesystem)).toString('base64')
-#   uri = "data:application/json;base64,#{base64d}"
-#   console.log """
-#   var FileSystem;
-#   (function() {
-#     function b64_to_utf8( str ) {
-#         return decodeURIComponent(escape(window.atob( str )));
-#     };
-#     FileSystem = JSON.parse(b64_to_utf8("#{base64d}"));
-#   })();
-#   """
-
-# Not quite sure how to avoid having certain globals
-
-

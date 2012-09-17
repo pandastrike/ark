@@ -1,6 +1,9 @@
-ark - ackage up your browser Javascript using the Node module system. You can
-use `require` just like in Node. Put another way, you can reuse server-side
-code in the browser and still use `require` and NPM.
+USAGE - ark
+
+Package up your browser Javascript using the Node module system. 
+
+You can use `require` just like in Node. Put another way, you can reuse
+server-side code in the browser and still use `require` and NPM.
 
 COMMANDS
 

@@ -1,16 +1,18 @@
-# 
-# NativeModule
-# 
-# Adapted from node source
-#
+global = (->
 
-( -> 
+  base64Decode = (string) -> window.atob  string
+    
+  filesystem:
+    root: <%- JSON.stringify(@root) %>
+    content: <%- JSON.stringify(@content) %>
+    native_modules: <%- JSON.stringify(@native_modules) %>
+    read: (reference) ->
+      reference = reference.__ref if reference.__ref?
+      base64Decode global.filesystem.content[reference]
+      
+)()    
 
-  process = null
-  global = {}
-
-  global.filesystem = <%- JSON.stringify @filesystem %>
-
+process = ( ->
   scopes =
     evals:
       NodeScript: 
@@ -19,18 +21,24 @@
         runInNewContext: (source,filename,returnResult) -> 
           console.log "WARNING: runInNewContext doesn't work in the browser."
           eval source
-  
-  process = 
-    platform: "browser"
-    moduleLoadList: []
-    env: {}
-    argv: ["node","/"]
-    fileSystem: FileSystem
-    binding: (scope) ->
-     scopes[scope]
-    cwd: () -> "/"
 
-  
+  platform: "browser"
+  moduleLoadList: []
+  env: {}
+  argv: ["node","/"]
+  binding: (scope) ->
+   scopes[scope]
+  cwd: () -> "/"
+)()
+
+# 
+# NativeModule
+# 
+# Adapted from node source
+#
+
+NativeModule = ( ->
+
   runInThisContext = process.binding('evals').NodeScript.runInThisContext
 
   `  
@@ -92,7 +100,7 @@
   NativeModule.prototype.compile = function() {
     var source = NativeModule.getSource(this.id);
     source = NativeModule.wrap(source);
-
+    console.log(source)
     var fn = runInThisContext(source, this.filename, true);
     fn(this.exports, NativeModule.require, this, this.filename);
 
@@ -108,39 +116,48 @@
   # Bootstrap native modules
   #
 
-  for name,source in global.filesystem.root.__native
-    NativeModule._source[name] = source
+  for name, ref of global.filesystem.native_modules
+    console.log "Adding module #{name} ..."
+    NativeModule._source[name] = global.filesystem.read(ref)
 
+  NativeModule
 
-  #
-  # fs
-  #
+)()
+
+#
+# fs
+#
+
+( ->
   
   getFile = (path) ->
     parts = path.split("/")[1..]
-    file = global.fileSystem.root
+    file = global.filesystem.root
     for part in parts
       if not (file = file[part])
         throw "File not found at '#{path}'"
     file
-  
+
   class Stat
     constructor: (path) -> @file = getFile(path)
     isDirectory: () -> @file.__stat.type == "directory"
     isFile: () -> @file.__stat.type == "file"
     isSymbolicLink: () -> false
 
+  base64Decode = (string) ->
+    decodeURIComponent escape window.atob string
+    
   fs =
     readFileSync: (path,encoding) ->
       file = getFile(path)
-      reference = file.__meta.content
-      process.fileSystem.contents[reference]
-      
+      global.filesystem.read(file)
+
     statSync: (path) ->
       new Stat(path)
-      
+
     lstatSync: (path) -> @statSync(path)
 
+    # realpathSync adapted from Node source
     realpathSync: `function realpathSync(p, cache) {
 
       var isWindows = process.platform === 'win32';
@@ -162,7 +179,7 @@
 
       var pathModule = NativeModule.require("path");
       var normalize = pathModule.normalize;
-      
+
       // make p is absolute
       p = pathModule.resolve(p);
 
@@ -257,14 +274,14 @@
 
       return p;
     }`
-  
-  
+
+
   fs_module = new NativeModule("fs")
   fs_module.loaded = true
   fs_module.exports = fs
   NativeModule._cache["fs"] = fs_module
   
-  # Start the main script
-  NativeModule.require("module").runMain()
+)()
 
-)();
+# Start the main script
+NativeModule.require("module").runMain()
