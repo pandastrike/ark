@@ -5,7 +5,6 @@ Path = require "path"
 Eco = require "eco"
 CoffeeScript = require "coffee-script"
 
-
 inspect = (thing) -> Util.inspect(thing)
 
 error = (message) -> throw new Error(message)
@@ -68,14 +67,6 @@ build_index = (manifest) ->
   
     data = read(resolve(path))
     reference = md5(data)
-    
-    # TODO: hash compiled source (to avoid storing
-    # CoffeeScript source and compiled files)
-    
-    # TODO: support multiple source formats
-    
-    # TODO: render actual functions 
-    # (see render_function above)
     
     content[reference] = base64(data)
   

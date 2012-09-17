@@ -1,8 +1,11 @@
 {
   "name": "ark",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Packages code for the browser as Node modules.",
   "main": "lib/ark.js",
+  "bin": {
+    "ark": "./bin/ark"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
