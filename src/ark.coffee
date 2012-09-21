@@ -2,10 +2,14 @@ Util = require "util"
 Crypto = require "crypto"
 FileSystem = require "fs"
 Path = require "path"
+Fibers = require "fibers"
+Future = require "fibers/future"
 Eco = require "eco"
 CoffeeScript = require "coffee-script"
 
 inspect = (thing) -> Util.inspect(thing)
+
+print = console.log
 
 error = (message) -> throw new Error(message)
 
@@ -21,24 +25,36 @@ render = (template,context) -> Eco.render template, context
 
 compile = (source) -> CoffeeScript.compile source
 
-glob = require "glob"
-
-manifest = (options,callback) ->
+make_synchronous = (fn) ->
+  fn = Future.wrap fn
+  ->
+    fn(arguments...).wait()
   
+glob = make_synchronous require "glob"
+
+{dependencies} = require "./static"
+
+source_files = (options) ->
+
   {source,extensions} = options
-  
-  glob "#{source}/**/*.{#{extensions}}", {}, (error,paths) ->
-    if error
-      callback(error)
-    else
-      manifest = source: source, files: []
-      source_parts = source.split("/")
-      for path in paths
-        _path = path.split("/")[(source_parts.length)..].join("/")
-        manifest.files.push _path
-      callback(null,manifest)
 
-build_index = (manifest) ->
+  paths = glob "#{source}/**/*.{#{extensions}}", {}
+  files = []
+  source_parts = source.split("/")
+  for path in paths
+    _path = path.split("/")[(source_parts.length)..].join("/")
+    files.push _path
+  files
+  
+manifest = (options) ->
+  source: options.source
+  files: 
+    if options.static?
+      dependencies options.source
+    else 
+      source_files options
+  
+index = (manifest) ->
   
   root = {}
   content = {}
@@ -86,32 +102,34 @@ build_index = (manifest) ->
   native_modules: native_modules
   
 
-generate_code = (filesystem) ->
+code = (filesystem) ->
   
   template = read("#{__dirname}/templates/node.coffee")
-  console.log compile render template, filesystem
+  compile render template, filesystem
 
 Ark =
 
   manifest: (options) ->
     
-    error "Static analysis is not yet implemented." if options.static? 
     error "Please provide source directory via --source option" unless options.source?
 
-    manifest options, (error,manifest) ->
-      throw error if error?
-      console.log JSON.stringify(manifest)
-       
-  package: (options) ->
+    print JSON.stringify manifest options
     
-    _package = (_error,manifest) ->
-      
-      error(_error) if _error?
-      generate_code(build_index(manifest))
+  package: (options) ->
 
-    if options.manifest
-      _package null, JSON.parse(read(options.manifest))
+    manifest = if options.manifest
+      JSON.parse read options.manifest
     else
-      manifest options, _package
+      manifest options
+      
+    print code index manifest
+
+run_as_fiber = (fn) ->
+  ->
+    _arguments = arguments
+    Fiber( -> fn(_arguments...) ).run()
+  
+Ark.manifest = run_as_fiber Ark.manifest
+Ark.package = run_as_fiber Ark.package
 
 module.exports = Ark

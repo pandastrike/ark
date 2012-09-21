@@ -100,7 +100,6 @@ NativeModule = ( ->
   NativeModule.prototype.compile = function() {
     var source = NativeModule.getSource(this.id);
     source = NativeModule.wrap(source);
-    console.log(source)
     var fn = runInThisContext(source, this.filename, true);
     fn(this.exports, NativeModule.require, this, this.filename);
 
@@ -117,7 +116,6 @@ NativeModule = ( ->
   #
 
   for name, ref of global.filesystem.native_modules
-    console.log "Adding module #{name} ..."
     NativeModule._source[name] = global.filesystem.read(ref)
 
   NativeModule
