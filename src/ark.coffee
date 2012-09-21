@@ -53,8 +53,6 @@ manifest = (options) ->
     _path = path.split("/")[(n)..].join("/")
     files.push _path
 
-  print files
-  
   source: source
   files: files
     
