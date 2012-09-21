@@ -35,7 +35,7 @@ options =
 # the manifest from stdin
 options.manifest = process.stdin unless options.source?
 
-options.extensions ?= "js,json"
+options.extensions ?= "js,json,coffee"
 
 try 
   Ark[command](options)

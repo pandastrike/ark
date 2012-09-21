@@ -23,7 +23,7 @@ base64 = (string) -> new Buffer(string).toString('base64')
 
 render = (template,context) -> Eco.render template, context
 
-compile = (source) -> CoffeeScript.compile source
+compile_coffeescript = (source) -> CoffeeScript.compile source
 
 make_synchronous = (fn) ->
   fn = Future.wrap fn
@@ -63,9 +63,14 @@ index = (manifest) ->
   resolve = (paths...) ->
     Path.resolve(manifest.source,paths...)
 
-  template = read("#{__dirname}/templates/module.coffee")
-  render_function = (code) ->
-    compile(render(template, code: code))    
+  # template = read("#{__dirname}/templates/module.coffee")
+  # render_function = (code) ->
+  #   compile(render(template, code: code))    
+
+  compilers = 
+    ".coffee": compile_coffeescript
+  
+  identity = (x) -> x
     
   for path in manifest.files
     parts = path.split("/")
@@ -81,7 +86,8 @@ index = (manifest) ->
       tmp.__stat.type ?=  "directory"
       tmp = tmp[part] ?= {}
   
-    data = read(resolve(path))
+    compile = compilers[Path.extname path] or identity
+    data = compile read resolve path
     reference = md5(data)
     
     content[reference] = base64(data)
@@ -105,7 +111,7 @@ index = (manifest) ->
 code = (filesystem) ->
   
   template = read("#{__dirname}/templates/node.coffee")
-  compile render template, filesystem
+  compile_coffeescript render template, filesystem
 
 Ark =
 

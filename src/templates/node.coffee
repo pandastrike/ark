@@ -277,6 +277,7 @@ NativeModule = ( ->
   fs_module = new NativeModule("fs")
   fs_module.loaded = true
   fs_module.exports = fs
+  NativeModule._source["fs"] = ""
   NativeModule._cache["fs"] = fs_module
   
 )()
