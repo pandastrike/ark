@@ -1,2 +1,3 @@
-(exports,require,module,__filename,__dirname) ->
-  `<%- @code %>`
+function(exports,require,module,__filename,__dirname) {
+<%- @code %>  
+}

@@ -53,32 +53,39 @@ manifest = (options) ->
     _path = path.split("/")[(n)..].join("/")
     files.push _path
 
+  print files
+
   source: source
   files: files
     
+# TODO: refactor this code, especially the bit about adding stuff into the
+# filesystem and conditionally adding stuff into module_functions
 index = (manifest) ->
   
-  root = {}
-  content = {}
-  native_modules = {}
+  filesystem = 
+    root: {}
+    content: {}
+    native_modules: {}
+    module_functions: {}
   
   resolve = (paths...) ->
     Path.resolve(manifest.source,paths...)
 
-  # template = read("#{__dirname}/templates/module.coffee")
-  # render_function = (code) ->
-  #   compile(render(template, code: code))    
+  template = read("#{__dirname}/templates/module.coffee")
+  module_function = (code) ->
+    render template, code: code
 
+  identity = (x) -> x
   compilers = 
     ".coffee": compile_coffeescript
+    ".js": identity
   
-  identity = (x) -> x
     
   for path in manifest.files
     directory = Path.dirname path
     filename = Path.basename path
 
-    tmp = root
+    tmp = filesystem.root
     cwd = []
     unless directory == "."
       for part in directory.split("/")
@@ -89,11 +96,15 @@ index = (manifest) ->
         tmp.__stat.type ?=  "directory"
   
     real_path = resolve path
-    compile = compilers[Path.extname path] or identity
-    data = compile read real_path
-    reference = md5(data)
-    
-    content[reference] = base64(data)
+    extension = Path.extname path
+    content = read real_path
+    reference = md5(content)
+    if extension in Object.keys compilers
+      compile = compilers[extension]
+      filesystem.content[reference] = base64(reference)
+      filesystem.module_functions[reference] = module_function compile content
+    else
+      filesystem.content[reference] = base64(content)
   
     tmp[filename] =
       __stat: stat real_path
@@ -103,20 +114,20 @@ index = (manifest) ->
   # add native modules
   for filename in (readdir Path.resolve __dirname, "node")
     code = read Path.resolve __dirname, "node", filename
+    extension = Path.extname filename
+    name = Path.basename filename, extension
     reference = md5(code)
-    name = Path.basename filename,".js"
-    native_modules[name] = reference
-    content[reference] = base64(code)
+    filesystem.native_modules[name] = reference
+    filesystem.content[reference] = base64(reference)
+    compile = compilers[extension]
+    filesystem.module_functions[reference] = module_function compile code
   
-  root: root
-  content: content
-  native_modules: native_modules
+  filesystem
   
-
 code = (filesystem) ->
   
-  template = read("#{__dirname}/templates/node.coffee")
-  compile_coffeescript render template, filesystem
+  template = read("#{__dirname}/templates/node.js")
+  render template, filesystem
 
 Ark =
 

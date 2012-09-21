@@ -455,6 +455,10 @@ Module._extensions['.js'] = function(module, filename) {
   module._compile(stripBOM(content), filename);
 };
 
+// We've already pre-compiled the CoffeeScript so we can embed the source and
+// have it show up in the debugger
+Module._extensions['.coffee'] = Module._extensions['.js']
+
 
 // Native extension for .json
 Module._extensions['.json'] = function(module, filename) {
