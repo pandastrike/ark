@@ -138,7 +138,8 @@ NativeModule = ( ->
 
   class Stat
     constructor: (path) -> @file = getFile(path)
-    isDirectory: () -> @file.__stat.type == "directory"
+    isDirectory: () -> 
+      @file.__stat.type == "directory"
     isFile: () -> @file.__stat.type == "file"
     isSymbolicLink: () -> false
 

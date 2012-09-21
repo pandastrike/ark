@@ -41,7 +41,7 @@ create_module = (path,parent) ->
 
 dependencies = (path) ->
   path = resolve path, (read_package path).main
-  paths = []
+  paths = [ path ]
   _dependencies = (path,parent) ->
     source = read path
     if (extname path) == ".coffee"

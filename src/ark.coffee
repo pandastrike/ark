@@ -15,6 +15,8 @@ error = (message) -> throw new Error(message)
 
 read = (path) -> FileSystem.readFileSync(path,'utf-8')
 
+readdir = (path) -> FileSystem.readdirSync(path)
+
 stat = (path) -> FileSystem.statSync(path)
 
 md5 = (string) -> Crypto.createHash('md5').update(string,'utf-8').digest("hex")
@@ -34,26 +36,28 @@ glob = make_synchronous require "glob"
 
 {dependencies} = require "./static"
 
-source_files = (options) ->
+manifest = (options) ->
 
   {source,extensions} = options
 
-  paths = glob "#{source}/**/*.{#{extensions}}", {}
+  source = Path.resolve source
+
+  paths = if options.static? 
+    (dependencies source).concat glob "#{source}/**/*.json", {}
+  else
+    glob "#{source}/**/*.{#{extensions}}", {}
+    
   files = []
-  source_parts = source.split("/")
+  n = source.split("/").length
   for path in paths
-    _path = path.split("/")[(source_parts.length)..].join("/")
+    _path = path.split("/")[(n)..].join("/")
     files.push _path
-  files
+
+  print files
   
-manifest = (options) ->
-  source: options.source
-  files: 
-    if options.static?
-      dependencies options.source
-    else 
-      source_files options
-  
+  source: source
+  files: files
+    
 index = (manifest) ->
   
   root = {}
@@ -73,33 +77,36 @@ index = (manifest) ->
   identity = (x) -> x
     
   for path in manifest.files
-    parts = path.split("/")
-    directory_parts = parts[0..-2]
-    file_part = parts[-1..][0]
+    directory = Path.dirname path
+    filename = Path.basename path
 
     tmp = root
     cwd = []
-    for part in directory_parts
-      cwd.push << part
-      # TODO: don't need all the Stat attributes
-      tmp.__stat ?= stat(resolve(cwd...))
-      tmp.__stat.type ?=  "directory"
-      tmp = tmp[part] ?= {}
+    unless directory == "."
+      for part in directory.split("/")
+        cwd.push << part
+        tmp = tmp[part] ?= {}
+        # TODO: don't need all the Stat attributes
+        tmp.__stat ?= stat resolve cwd...
+        tmp.__stat.type ?=  "directory"
   
+    real_path = resolve path
     compile = compilers[Path.extname path] or identity
-    data = compile read resolve path
+    data = compile read real_path
     reference = md5(data)
     
     content[reference] = base64(data)
   
-    tmp[file_part] =
-      __stat: stat(resolve(path))
+    tmp[filename] =
+      __stat: stat real_path
       __ref: reference
+    tmp[filename].__stat.type = "file"  
 
   # add native modules
-  for name in "assert util path module".split(" ")
-    code = read("#{__dirname}/node/#{name}.js")
+  for filename in (readdir Path.resolve __dirname, "node")
+    code = read Path.resolve __dirname, "node", filename
     reference = md5(code)
+    name = Path.basename filename,".js"
     native_modules[name] = reference
     content[reference] = base64(code)
   

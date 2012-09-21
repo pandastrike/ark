@@ -304,7 +304,6 @@ Module._load = function(request, parent, isMain) {
 };
 
 Module._resolveFilename = function(request, parent) {
-  console.log(request,NativeModule.exists(request));
   if (NativeModule.exists(request)) {
     return request;
   }
