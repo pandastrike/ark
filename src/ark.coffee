@@ -21,6 +21,11 @@ readdir = (path) -> FileSystem.readdirSync(path)
 
 stat = (path) -> FileSystem.statSync(path)
 
+uniq = (array) ->
+  hash = {}
+  hash[element] = true for element in array
+  Object.keys(hash)
+
 md5 = (string) -> Crypto.createHash('md5').update(string,'utf-8').digest("hex")
 
 base64 = (string) -> new Buffer(string).toString('base64')
@@ -46,7 +51,7 @@ manifest = (options) ->
   
   if options.static? 
     [paths,native_modules] = dependencies source
-    paths = paths.concat glob "#{source}/**/*.json", {}
+    paths = uniq paths.concat glob "#{source}/**/*.json", {}
     for module in "assert util path fs module".split(" ")
       native_modules.push module unless module in native_modules
   else
@@ -146,7 +151,7 @@ Ark =
     
     error "Please provide source directory via --source option" unless options.source?
 
-    print JSON.stringify manifest options
+    print inspect manifest options
     
   package: (options) ->
 
