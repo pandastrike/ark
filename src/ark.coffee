@@ -7,6 +7,14 @@ Future = require "fibers/future"
 Eco = require "eco"
 CoffeeScript = require "coffee-script"
 
+minify = (->
+  {parser,uglify} = require "uglify-js"
+  (code) ->
+    ast = parser.parse code
+    ast = uglify.ast_mangle ast
+    ast = uglify.ast_squeeze ast
+    uglify.gen_code ast
+)()
 
 beautify = (->
   _beautify = require "./beautify"
@@ -152,7 +160,7 @@ index = (manifest) ->
 code = (filesystem) ->
   
   template = read("#{__dirname}/templates/node.js")
-  beautify render template, filesystem
+  render template, filesystem
 
 Ark =
 
@@ -169,7 +177,11 @@ Ark =
     else
       manifest options
       
-    print code index manifest
+    print if options.minify
+      minify code index manifest
+    else
+      beautify code index manifest
+      
 
 run_as_fiber = (fn) ->
   ->

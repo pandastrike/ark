@@ -28,7 +28,7 @@ for key,value of argv
 options = 
   source: argv.s or argv.source
   static: argv.z or argv.static
-  uglify: argv.u or argv.uglify
+  minify: argv.m or argv.minify
   extensions: argv.x or argv.extensions
 
 # if a source directory is specified, use that; otherwise assume we'll read
