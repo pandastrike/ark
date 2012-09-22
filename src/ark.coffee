@@ -13,6 +13,8 @@ print = console.log
 
 error = (message) -> throw new Error(message)
 
+warn = (message) -> process.stderr.write "#{message}\n"
+
 read = (path) -> FileSystem.readFileSync(path,'utf-8')
 
 readdir = (path) -> FileSystem.readdirSync(path)
@@ -41,12 +43,18 @@ manifest = (options) ->
   {source,extensions} = options
 
   source = Path.resolve source
-
-  paths = if options.static? 
-    (dependencies source).concat glob "#{source}/**/*.json", {}
+  
+  if options.static? 
+    [paths,native_modules] = dependencies source
+    paths = paths.concat glob "#{source}/**/*.json", {}
+    for module in "assert util path fs module".split(" ")
+      native_modules.push module unless module in native_modules
   else
-    glob "#{source}/**/*.{#{extensions}}", {}
-    
+    paths = glob "#{source}/**/*.{#{extensions}}", {}
+    native_modules = for filename in (readdir Path.resolve __dirname, "node")
+      extension = Path.extname filename
+      Path.basename filename, extension
+      
   files = []
   n = source.split("/").length
   for path in paths
@@ -55,6 +63,7 @@ manifest = (options) ->
 
   source: source
   files: files
+  native_modules: native_modules
     
 # TODO: refactor this code, especially the bit about adding stuff into the
 # filesystem and conditionally adding stuff into module_functions
@@ -110,15 +119,21 @@ index = (manifest) ->
     tmp[filename].__stat.type = "file"  
 
   # add native modules
-  for filename in (readdir Path.resolve __dirname, "node")
-    code = read Path.resolve __dirname, "node", filename
-    extension = Path.extname filename
-    name = Path.basename filename, extension
-    reference = md5(code)
-    filesystem.native_modules[name] = reference
-    filesystem.content[reference] = base64(reference)
-    compile = compilers[extension]
-    filesystem.module_functions[reference] = module_function compile code
+  if "http" in manifest.native_modules and not ("stream" in manifest.native_modules)
+    warn "Automatically adding native module 'stream' because 'http' is being used"
+    manifest.native_modules.push "stream"
+  for name in manifest.native_modules
+    try
+      path = require.resolve Path.resolve __dirname, "node", name
+      code = read path
+      extension = Path.extname path
+      reference = md5 code
+      filesystem.native_modules[name] = reference
+      filesystem.content[reference] = base64 reference
+      compile = compilers[extension]
+      filesystem.module_functions[reference] = module_function compile code
+    catch e
+      warn "Unable to package native module '#{name}'"
   
   filesystem
   

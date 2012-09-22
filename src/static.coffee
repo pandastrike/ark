@@ -20,11 +20,18 @@ detective = require "detective"
 CoffeeScript = require "coffee-script"
 compile = (source) -> CoffeeScript.compile source
 
+uniq = (array) ->
+  hash = {}
+  hash[element] = true for element in array
+  Object.keys(hash)
+
 read_package = (path) ->
+  
   JSON.parse read resolve path,"package.json"
 
 # this depends on getting an absolute path back from resolveFilename - for
-# native modules, we just get back the module name
+# native modules, we just get back the module name -- I had a dream that there
+# was a much better way to do this :)
 native_module = (path) -> path[0] != "/"
 
 create_module = (path,parent) ->
@@ -42,6 +49,7 @@ create_module = (path,parent) ->
 dependencies = (path) ->
   path = resolve path, (read_package path).main
   paths = [ path ]
+  native_modules = []
   _dependencies = (path,parent) ->
     source = read path
     if (extname path) == ".coffee"
@@ -52,8 +60,11 @@ dependencies = (path) ->
       unless native_module dependent_path
         paths.push dependent_path
         _dependencies(dependent_path,module)
+      else
+        native_modules.push dependent_path
   _dependencies path
-  paths
+  
+  [paths,(uniq native_modules)]
     
 module.exports =
   dependencies: dependencies
