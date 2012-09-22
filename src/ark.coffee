@@ -7,6 +7,13 @@ Future = require "fibers/future"
 Eco = require "eco"
 CoffeeScript = require "coffee-script"
 
+
+beautify = (->
+  _beautify = require "./beautify"
+  (code) -> _beautify code, indent_size: 2
+)()
+
+
 inspect = (thing) -> Util.inspect(thing)
 
 print = console.log
@@ -32,7 +39,7 @@ base64 = (string) -> new Buffer(string).toString('base64')
 
 render = (template,context) -> Eco.render template, context
 
-compile_coffeescript = (source) -> CoffeeScript.compile source
+compile_coffeescript = (source) -> CoffeeScript.compile source, bare: true
 
 make_synchronous = (fn) ->
   fn = Future.wrap fn
@@ -81,9 +88,9 @@ index = (manifest) ->
   resolve = (paths...) ->
     Path.resolve(manifest.source,paths...)
 
-  template = read("#{__dirname}/templates/module.coffee")
-  module_function = (code) ->
-    render template, code: code
+  template = read("#{__dirname}/templates/module.js")
+  module_function = (code,path) ->
+    render template, code: code, path: path
 
   identity = (x) -> x
   compilers = 
@@ -112,7 +119,8 @@ index = (manifest) ->
     if extension in Object.keys compilers
       compile = compilers[extension]
       filesystem.content[reference] = base64(reference)
-      filesystem.module_functions[reference] = module_function compile content
+      filesystem.module_functions[reference] = 
+        module_function (compile content), path
     else
       filesystem.content[reference] = base64(content)
   
@@ -134,7 +142,8 @@ index = (manifest) ->
       filesystem.native_modules[name] = reference
       filesystem.content[reference] = base64 reference
       compile = compilers[extension]
-      filesystem.module_functions[reference] = module_function compile code
+      filesystem.module_functions[reference] = 
+        module_function compile code
     catch e
       warn "Unable to package native module '#{name}'"
   
@@ -143,7 +152,7 @@ index = (manifest) ->
 code = (filesystem) ->
   
   template = read("#{__dirname}/templates/node.js")
-  render template, filesystem
+  beautify render template, filesystem
 
 Ark =
 
