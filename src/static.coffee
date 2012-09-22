@@ -4,8 +4,8 @@
 
 FileSystem = require "fs"
 read = (path) -> FileSystem.readFileSync(path,'utf-8')
-
-Module = require "module"
+print = console.log 
+Module = require "./module"
 module_paths = Module._nodeModulePaths
 resolve_filename = Module._resolveFilename
 
@@ -25,10 +25,7 @@ read_package = (path) ->
   
   JSON.parse read resolve path,"package.json"
 
-# this depends on getting an absolute path back from resolveFilename - for
-# native modules, we just get back the module name -- I had a dream that there
-# was a much better way to do this :)
-native_module = (path) -> path[0] != "/"
+native_module = (path) -> Module._isNative path
 
 create_module = (path,parent) ->
 
@@ -59,7 +56,7 @@ dependencies = (path) ->
       else
         native_modules.push dependent_path
   _dependencies path
-  
+
   [paths,(uniq native_modules)]
     
 module.exports =

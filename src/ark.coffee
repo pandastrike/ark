@@ -105,7 +105,6 @@ index = (manifest) ->
     ".coffee": compile_coffeescript
     ".js": identity
   
-    
   for path in manifest.files
     directory = Path.dirname path
     filename = Path.basename path
