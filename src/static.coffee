@@ -5,10 +5,6 @@
 FileSystem = require "fs"
 read = (path) -> FileSystem.readFileSync(path,'utf-8')
 
-# TODO: clone Module source so we don't have to worry about things breaking
-# between releases. We can do this because the dependency loading is locked
-# down as part of the Module interface and so it won't, even if the internal
-# implementation does.
 Module = require "module"
 module_paths = Module._nodeModulePaths
 resolve_filename = Module._resolveFilename

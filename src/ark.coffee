@@ -65,8 +65,6 @@ manifest = (options) ->
   files: files
   native_modules: native_modules
     
-# TODO: refactor this code, especially the bit about adding stuff into the
-# filesystem and conditionally adding stuff into module_functions
 index = (manifest) ->
   
   filesystem = 
