@@ -1,6 +1,6 @@
 {
   "name": "ark",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Packages code for the browser as Node modules.",
   "main": "lib/ark.js",
   "bin": {
@@ -29,5 +29,8 @@
     "glob": "3.1.x",
     "optimist": "0.3.x",
     "uglify-js": "1.3.x"
+  },
+  "devDependencies": {
+    "docco": "0.3.x"
   }
 }
