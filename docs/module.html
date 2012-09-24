@@ -3,7 +3,8 @@ interface for use in doing path resolution, since it otherwise would rely on
 internal methods. Since the Node Module lookup is part of the Module
 interface (or, at least, that's how I'm interpreting it) and that interface
 is "locked", it stands to reason that it's safe to use any conforming
-implementation, which, obviously, includes Node's own Module implementation.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">NativeModule = </span>
+implementation, which, obviously, includes Node's own Module implementation.</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>We fake out <code>require</code> and <code>exists</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">NativeModule = </span>
+  
   <span class="nv">names:</span>
     <span class="p">[</span><span class="s2">&quot;assert&quot;</span><span class="p">,</span> <span class="s2">&quot;buffer&quot;</span><span class="p">,</span> <span class="s2">&quot;buffer_ieee754&quot;</span><span class="p">,</span> <span class="s2">&quot;child_process&quot;</span><span class="p">,</span> <span class="s2">&quot;cluster&quot;</span><span class="p">,</span>
     <span class="s2">&quot;console&quot;</span><span class="p">,</span> <span class="s2">&quot;constants&quot;</span><span class="p">,</span> <span class="s2">&quot;crypto&quot;</span><span class="p">,</span> <span class="s2">&quot;dgram&quot;</span><span class="p">,</span> <span class="s2">&quot;dns&quot;</span><span class="p">,</span> <span class="s2">&quot;domain&quot;</span><span class="p">,</span> <span class="s2">&quot;events&quot;</span><span class="p">,</span>
@@ -21,14 +22,12 @@ implementation, which, obviously, includes Node's own Module implementation.</p>
 <span class="nx">var</span> <span class="nv">runInNewContext = </span><span class="nx">Script</span><span class="p">.</span><span class="nx">runInNewContext</span><span class="p">;</span> 
 <span class="nx">var</span> <span class="nv">assert = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;assert&#39;</span><span class="p">).</span><span class="nx">ok</span><span class="p">;</span>
 
-
 <span class="err">// If obj.hasOwnProperty has been overridden, then calling</span>
 <span class="o">/</span><span class="err">/ obj.hasOwnProperty(prop) will break.</span>
 <span class="o">/</span><span class="sr">/ See: https:/</span><span class="o">/</span><span class="nx">github</span><span class="p">.</span><span class="nx">com</span><span class="err">/joyent/node/issues/1707</span>
 <span class="nx">function</span> <span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">obj</span><span class="p">,</span> <span class="nx">prop</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">obj</span><span class="p">,</span> <span class="nx">prop</span><span class="p">);</span>
 <span class="p">}</span>
-
 
 <span class="nx">function</span> <span class="nx">Module</span><span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="nx">parent</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">this</span><span class="p">.</span><span class="nv">id = </span><span class="nx">id</span><span class="p">;</span>
@@ -523,7 +522,7 @@ implementation, which, obviously, includes Node's own Module implementation.</p>
 
 <span class="err">// backwards compatibility</span>
 <span class="nv">Module.Module = </span><span class="nx">Module</span><span class="p">;</span>
-<span class="o">`</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>We have to make this explicit because CoffeeScript is adding itself to the
+<span class="o">`</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>We have to make this explicit because CoffeeScript is adding itself to the
 real Module</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">[</span><span class="s1">&#39;.coffee&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">[</span><span class="s1">&#39;.js&#39;</span><span class="p">]</span>
 
 

@@ -104,9 +104,12 @@ beautify = (->
 
 # ## Helper Functions
 
+# ### `manifest`
+
 # The `manifest` function returns a *manifest*, a Javascript object describing
 # the original source directory used to generate the manifest, a list of files
 # to include, and a list of native modules to include.
+
 manifest = (options) ->
 
   {source,extensions} = options
@@ -159,6 +162,8 @@ manifest = (options) ->
   source: source
   files: files
   native_modules: native_modules
+  
+# ### `index`
 
 # The `index` function takes a manifest and returns the JavaScript object
 # representing our virtual filesystem. The name `index` is a bit of misnomer
@@ -320,7 +325,9 @@ index = (manifest) ->
   
   # Return the filesystem to the caller.
   filesystem
-  
+
+# ### `code`
+
 # The `code` function takes the filesystem and turns it into a Javascript file
 # based on the `node.js` template in the `templates` directory.
 code = (filesystem) ->

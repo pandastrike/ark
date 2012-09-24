@@ -5,7 +5,9 @@
 # is "locked", it stands to reason that it's safe to use any conforming
 # implementation, which, obviously, includes Node's own Module implementation.
 
+# We fake out `require` and `exists`.
 NativeModule = 
+  
   names:
     ["assert", "buffer", "buffer_ieee754", "child_process", "cluster",
     "console", "constants", "crypto", "dgram", "dns", "domain", "events",
@@ -23,14 +25,12 @@ var runInThisContext = Script.runInThisContext;
 var runInNewContext = Script.runInNewContext; 
 var assert = require('assert').ok;
 
-
 // If obj.hasOwnProperty has been overridden, then calling
 // obj.hasOwnProperty(prop) will break.
 // See: https://github.com/joyent/node/issues/1707
 function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
-
 
 function Module(id, parent) {
   this.id = id;
