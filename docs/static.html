@@ -1,0 +1,63 @@
+<!DOCTYPE html>  <html> <head>   <title>static.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="ark.html">                 ark.coffee               </a>                                           <a class="source" href="cli.html">                 cli.coffee               </a>                                           <a class="source" href="module.html">                 module.coffee               </a>                                           <a class="source" href="static.html">                 static.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               static.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>This is the beginning of the static dependency analysis feature. Currently
+just dumps paths of dependencies to stdout, but we will turn this into a
+function that returns a manifest for use with Ark</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">FileSystem = </span><span class="nx">require</span> <span class="s2">&quot;fs&quot;</span>
+<span class="nv">read = </span><span class="nf">(path) -&gt;</span> <span class="nx">FileSystem</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="nv">print = </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span> 
+<span class="nv">Module = </span><span class="nx">require</span> <span class="s2">&quot;./module&quot;</span>
+<span class="nv">module_paths = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_nodeModulePaths</span>
+<span class="nv">resolve_filename = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_resolveFilename</span>
+
+<span class="p">{</span><span class="nx">dirname</span><span class="p">,</span><span class="nx">basename</span><span class="p">,</span><span class="nx">extname</span><span class="p">,</span><span class="nx">join</span><span class="p">,</span><span class="nx">resolve</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s2">&quot;path&quot;</span>
+
+<span class="nv">detective = </span><span class="nx">require</span> <span class="s2">&quot;detective&quot;</span>
+
+<span class="nv">CoffeeScript = </span><span class="nx">require</span> <span class="s2">&quot;coffee-script&quot;</span>
+<span class="nv">compile = </span><span class="nf">(source) -&gt;</span> <span class="nx">CoffeeScript</span><span class="p">.</span><span class="nx">compile</span> <span class="nx">source</span>
+
+<span class="nv">uniq = </span><span class="nf">(array) -&gt;</span>
+  <span class="nv">hash = </span><span class="p">{}</span>
+  <span class="nx">hash</span><span class="p">[</span><span class="nx">element</span><span class="p">]</span> <span class="o">=</span> <span class="kc">true</span> <span class="k">for</span> <span class="nx">element</span> <span class="k">in</span> <span class="nx">array</span>
+  <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">hash</span><span class="p">)</span>
+
+<span class="nv">read_package = </span><span class="nf">(path) -&gt;</span>
+  
+  <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span> <span class="nx">read</span> <span class="nx">resolve</span> <span class="nx">path</span><span class="p">,</span><span class="s2">&quot;package.json&quot;</span>
+
+<span class="nv">native_module = </span><span class="nf">(path) -&gt;</span> <span class="nx">Module</span><span class="p">.</span><span class="nx">_isNative</span> <span class="nx">path</span>
+
+<span class="nv">create_module = </span><span class="nf">(path,parent) -&gt;</span>
+
+  <span class="nv">directory = </span><span class="nx">dirname</span> <span class="nx">path</span>
+  <span class="nv">extension = </span><span class="nx">extname</span> <span class="nx">path</span>
+  <span class="nv">id = </span><span class="nx">join</span> <span class="nx">directory</span><span class="p">,</span> <span class="p">(</span><span class="nx">basename</span> <span class="nx">path</span><span class="p">,</span> <span class="nx">extension</span><span class="p">)</span>
+
+  <span class="nv">module = </span><span class="k">new</span> <span class="nx">Module</span><span class="p">(</span><span class="nx">id</span><span class="p">,</span><span class="nx">parent</span><span class="p">)</span>
+  <span class="nv">module.filename = </span><span class="nx">path</span>
+  <span class="nv">module.paths = </span><span class="nx">module_paths</span> <span class="nx">directory</span>
+
+  <span class="nx">module</span>
+
+<span class="nv">dependencies = </span><span class="nf">(path) -&gt;</span>
+  <span class="nv">path = </span><span class="nx">resolve</span> <span class="nx">path</span><span class="p">,</span> <span class="p">(</span><span class="nx">read_package</span> <span class="nx">path</span><span class="p">).</span><span class="nx">main</span>
+  <span class="nv">paths = </span><span class="p">[</span> <span class="nx">path</span> <span class="p">]</span>
+  <span class="nv">native_modules = </span><span class="p">[]</span>
+  <span class="nv">_dependencies = </span><span class="nf">(path,parent) -&gt;</span>
+    <span class="nv">source = </span><span class="nx">read</span> <span class="nx">path</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">extname</span> <span class="nx">path</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;.coffee&quot;</span>
+      <span class="nv">source = </span><span class="nx">compile</span> <span class="nx">source</span>
+    <span class="nv">module = </span><span class="nx">create_module</span> <span class="nx">path</span><span class="p">,</span> <span class="nx">parent</span>
+    <span class="k">for</span> <span class="nx">reference</span> <span class="k">in</span> <span class="p">(</span><span class="nx">detective</span> <span class="nx">source</span><span class="p">)</span>
+      <span class="nv">dependent_path = </span><span class="nx">resolve_filename</span> <span class="nx">reference</span><span class="p">,</span> <span class="nx">module</span>
+      <span class="nx">unless</span> <span class="nx">native_module</span> <span class="nx">dependent_path</span>
+        <span class="nx">paths</span><span class="p">.</span><span class="nx">push</span> <span class="nx">dependent_path</span>
+        <span class="nx">_dependencies</span><span class="p">(</span><span class="nx">dependent_path</span><span class="p">,</span><span class="nx">module</span><span class="p">)</span>
+      <span class="k">else</span>
+        <span class="nx">native_modules</span><span class="p">.</span><span class="nx">push</span> <span class="nx">dependent_path</span>
+  <span class="nx">_dependencies</span> <span class="nx">path</span>
+
+  <span class="p">[(</span><span class="nx">uniq</span> <span class="nx">paths</span><span class="p">),(</span><span class="nx">uniq</span> <span class="nx">native_modules</span><span class="p">)]</span>
+    
+<span class="nv">module.exports =</span>
+  <span class="nv">dependencies: </span><span class="nx">dependencies</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

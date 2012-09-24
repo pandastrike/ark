@@ -57,7 +57,7 @@ dependencies = (path) ->
         native_modules.push dependent_path
   _dependencies path
 
-  [paths,(uniq native_modules)]
+  [(uniq paths),(uniq native_modules)]
     
 module.exports =
   dependencies: dependencies

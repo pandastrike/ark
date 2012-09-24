@@ -1,0 +1,532 @@
+<!DOCTYPE html>  <html> <head>   <title>module.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="ark.html">                 ark.coffee               </a>                                           <a class="source" href="cli.html">                 cli.coffee               </a>                                           <a class="source" href="module.html">                 module.coffee               </a>                                           <a class="source" href="static.html">                 static.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               module.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>This is adapted from the Node source. The purpose is to "freeze" the Module
+interface for use in doing path resolution, since it otherwise would rely on
+internal methods. Since the Node Module lookup is part of the Module
+interface (or, at least, that's how I'm interpreting it) and that interface
+is "locked", it stands to reason that it's safe to use any conforming
+implementation, which, obviously, includes Node's own Module implementation.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">NativeModule = </span>
+  <span class="nv">names:</span>
+    <span class="p">[</span><span class="s2">&quot;assert&quot;</span><span class="p">,</span> <span class="s2">&quot;buffer&quot;</span><span class="p">,</span> <span class="s2">&quot;buffer_ieee754&quot;</span><span class="p">,</span> <span class="s2">&quot;child_process&quot;</span><span class="p">,</span> <span class="s2">&quot;cluster&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;console&quot;</span><span class="p">,</span> <span class="s2">&quot;constants&quot;</span><span class="p">,</span> <span class="s2">&quot;crypto&quot;</span><span class="p">,</span> <span class="s2">&quot;dgram&quot;</span><span class="p">,</span> <span class="s2">&quot;dns&quot;</span><span class="p">,</span> <span class="s2">&quot;domain&quot;</span><span class="p">,</span> <span class="s2">&quot;events&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;freelist&quot;</span><span class="p">,</span> <span class="s2">&quot;fs&quot;</span><span class="p">,</span> <span class="s2">&quot;http&quot;</span><span class="p">,</span> <span class="s2">&quot;https&quot;</span><span class="p">,</span> <span class="s2">&quot;module&quot;</span><span class="p">,</span> <span class="s2">&quot;net&quot;</span><span class="p">,</span> <span class="s2">&quot;os&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;punycode&quot;</span><span class="p">,</span> <span class="s2">&quot;querystring&quot;</span><span class="p">,</span> <span class="s2">&quot;readline&quot;</span><span class="p">,</span> <span class="s2">&quot;repl&quot;</span><span class="p">,</span> <span class="s2">&quot;stream&quot;</span><span class="p">,</span> <span class="s2">&quot;string_decoder&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;sys&quot;</span><span class="p">,</span> <span class="s2">&quot;timers&quot;</span><span class="p">,</span> <span class="s2">&quot;tls&quot;</span><span class="p">,</span> <span class="s2">&quot;tty&quot;</span><span class="p">,</span> <span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="s2">&quot;util&quot;</span><span class="p">,</span> <span class="s2">&quot;vm&quot;</span><span class="p">,</span> <span class="s2">&quot;zlib&quot;</span><span class="p">]</span>
+
+  <span class="nv">require: </span><span class="nf">(path) -&gt;</span> <span class="nx">require</span> <span class="nx">path</span>
+
+  <span class="nv">exists: </span><span class="nf">(path) -&gt;</span> <span class="nx">path</span> <span class="k">in</span> <span class="nx">NativeModule</span><span class="p">.</span><span class="nx">names</span>
+  
+<span class="o">`</span>
+<span class="nx">var</span> <span class="nv">Script = </span><span class="nx">process</span><span class="p">.</span><span class="nx">binding</span><span class="p">(</span><span class="s1">&#39;evals&#39;</span><span class="p">).</span><span class="nx">NodeScript</span><span class="p">;</span> 
+<span class="nx">var</span> <span class="nv">runInThisContext = </span><span class="nx">Script</span><span class="p">.</span><span class="nx">runInThisContext</span><span class="p">;</span> 
+<span class="nx">var</span> <span class="nv">runInNewContext = </span><span class="nx">Script</span><span class="p">.</span><span class="nx">runInNewContext</span><span class="p">;</span> 
+<span class="nx">var</span> <span class="nv">assert = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;assert&#39;</span><span class="p">).</span><span class="nx">ok</span><span class="p">;</span>
+
+
+<span class="err">// If obj.hasOwnProperty has been overridden, then calling</span>
+<span class="o">/</span><span class="err">/ obj.hasOwnProperty(prop) will break.</span>
+<span class="o">/</span><span class="sr">/ See: https:/</span><span class="o">/</span><span class="nx">github</span><span class="p">.</span><span class="nx">com</span><span class="err">/joyent/node/issues/1707</span>
+<span class="nx">function</span> <span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">obj</span><span class="p">,</span> <span class="nx">prop</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">obj</span><span class="p">,</span> <span class="nx">prop</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+<span class="nx">function</span> <span class="nx">Module</span><span class="p">(</span><span class="nx">id</span><span class="p">,</span> <span class="nx">parent</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nv">id = </span><span class="nx">id</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nv">exports = </span><span class="p">{};</span>
+  <span class="k">this</span><span class="p">.</span><span class="nv">parent = </span><span class="nx">parent</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">parent</span> <span class="o">&amp;&amp;</span> <span class="nx">parent</span><span class="p">.</span><span class="nx">children</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">parent</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">this</span><span class="p">.</span><span class="nv">filename = </span><span class="kc">null</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nv">loaded = </span><span class="kc">false</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nv">children = </span><span class="p">[];</span>
+<span class="p">}</span>
+<span class="nv">module.exports = </span><span class="nx">Module</span><span class="p">;</span>
+
+<span class="err">// Set the environ variable NODE_MODULE_CONTEXTS=1 to make node load all</span>
+<span class="o">/</span><span class="err">/ modules in thier own context.</span>
+<span class="nv">Module._contextLoad = </span><span class="p">(</span><span class="o">+</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">[</span><span class="s1">&#39;NODE_MODULE_CONTEXTS&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+<span class="nv">Module._cache = </span><span class="p">{};</span>
+<span class="nv">Module._pathCache = </span><span class="p">{};</span>
+<span class="nv">Module._extensions = </span><span class="p">{};</span>
+<span class="nx">var</span> <span class="nv">modulePaths = </span><span class="p">[];</span>
+<span class="nv">Module.globalPaths = </span><span class="p">[];</span>
+
+<span class="nv">Module.wrapper = </span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">wrapper</span><span class="p">;</span>
+<span class="nv">Module.wrap = </span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">wrap</span><span class="p">;</span>
+
+<span class="nx">var</span> <span class="nv">path = </span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;path&#39;</span><span class="p">);</span>
+
+<span class="nv">Module._debug = </span><span class="nx">function</span><span class="p">()</span> <span class="p">{};</span>
+<span class="k">if</span> <span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">NODE_DEBUG</span> <span class="o">&amp;&amp;</span> <span class="sr">/module/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">NODE_DEBUG</span><span class="p">))</span> <span class="p">{</span>
+  <span class="nv">Module._debug = </span><span class="nx">function</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">x</span><span class="p">);</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+
+
+<span class="o">/</span><span class="err">/ We use this alias for the preprocessor that filters it out</span>
+<span class="nx">var</span> <span class="nv">debug = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_debug</span><span class="p">;</span>
+
+
+<span class="err">// given a module name, and a list of paths to test, returns the first</span>
+<span class="o">/</span><span class="err">/ matching file in the following precedence.</span>
+<span class="o">/</span><span class="err">/</span>
+<span class="o">/</span><span class="err">/ require(&quot;a.&lt;ext&gt;&quot;)</span>
+<span class="o">/</span><span class="err">/   -&gt; a.&lt;ext&gt;</span>
+<span class="o">/</span><span class="err">/</span>
+<span class="o">/</span><span class="err">/ require(&quot;a&quot;)</span>
+<span class="o">/</span><span class="err">/   -&gt; a</span>
+<span class="o">/</span><span class="err">/   -&gt; a.&lt;ext&gt;</span>
+<span class="o">/</span><span class="err">/   -&gt; a/index.&lt;ext&gt;</span>
+
+<span class="nx">function</span> <span class="nx">statPath</span><span class="p">(</span><span class="nx">path</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">var</span> <span class="nv">fs = </span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">);</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">statSync</span><span class="p">(</span><span class="nx">path</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">ex</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="o">/</span><span class="err">/ check if the directory is a package.json dir</span>
+<span class="nx">var</span> <span class="nv">packageCache = </span><span class="p">{};</span>
+
+<span class="nx">function</span> <span class="nx">readPackage</span><span class="p">(</span><span class="nx">requestPath</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">packageCache</span><span class="p">,</span> <span class="nx">requestPath</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">packageCache</span><span class="p">[</span><span class="nx">requestPath</span><span class="p">];</span>
+  <span class="p">}</span>
+
+  <span class="nx">var</span> <span class="nv">fs = </span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">);</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="nx">var</span> <span class="nv">jsonPath = </span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">requestPath</span><span class="p">,</span> <span class="s1">&#39;package.json&#39;</span><span class="p">);</span>
+    <span class="nx">var</span> <span class="nv">json = </span><span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="nx">jsonPath</span><span class="p">,</span> <span class="s1">&#39;utf8&#39;</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="nx">var</span> <span class="nv">pkg = </span><span class="nx">packageCache</span><span class="p">[</span><span class="nx">requestPath</span><span class="p">]</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">json</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">e.path = </span><span class="nx">jsonPath</span><span class="p">;</span>
+    <span class="nv">e.message = </span><span class="s1">&#39;Error parsing &#39;</span> <span class="o">+</span> <span class="nx">jsonPath</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nx">e</span><span class="p">.</span><span class="nx">message</span><span class="p">;</span>
+    <span class="k">throw</span> <span class="nx">e</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nx">pkg</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nx">function</span> <span class="nx">tryPackage</span><span class="p">(</span><span class="nx">requestPath</span><span class="p">,</span> <span class="nx">exts</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">var</span> <span class="nv">pkg = </span><span class="nx">readPackage</span><span class="p">(</span><span class="nx">requestPath</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">pkg</span> <span class="o">||</span> <span class="o">!</span><span class="nx">pkg</span><span class="p">.</span><span class="nx">main</span><span class="p">)</span> <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="nx">var</span> <span class="nv">filename = </span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">requestPath</span><span class="p">,</span> <span class="nx">pkg</span><span class="p">.</span><span class="nx">main</span><span class="p">);</span>
+  <span class="k">return</span> <span class="nx">tryFile</span><span class="p">(</span><span class="nx">filename</span><span class="p">)</span> <span class="o">||</span> <span class="nx">tryExtensions</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span> <span class="nx">exts</span><span class="p">)</span> <span class="o">||</span>
+         <span class="nx">tryExtensions</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">),</span> <span class="nx">exts</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="o">/</span><span class="err">/ In order to minimize unnecessary lstat() calls,</span>
+<span class="o">/</span><span class="err">/ this cache is a list of known-real paths.</span>
+<span class="o">/</span><span class="err">/ Set to an empty object to reset.</span>
+<span class="nv">Module._realpathCache = </span><span class="p">{};</span>
+
+<span class="err">// check if the file exists and is not a directory</span>
+<span class="nx">function</span> <span class="nx">tryFile</span><span class="p">(</span><span class="nx">requestPath</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">var</span> <span class="nv">fs = </span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">);</span>
+  <span class="nx">var</span> <span class="nv">stats = </span><span class="nx">statPath</span><span class="p">(</span><span class="nx">requestPath</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">stats</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">stats</span><span class="p">.</span><span class="nx">isDirectory</span><span class="p">())</span> <span class="p">{</span>
+    <span class="err">//return fs.realpathSync(requestPath, Module._realpathCache);</span>
+    <span class="o">/</span><span class="err">/console.log(requestPath)</span>
+    <span class="k">return</span> <span class="nx">requestPath</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="o">/</span><span class="err">/ given a path check a the file exists with any of the set extensions</span>
+<span class="nx">function</span> <span class="nx">tryExtensions</span><span class="p">(</span><span class="nx">p</span><span class="p">,</span> <span class="nx">exts</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="nx">var</span> <span class="nv">i = </span><span class="mi">0</span><span class="p">,</span> <span class="nv">EL = </span><span class="nx">exts</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">EL</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">var</span> <span class="nv">filename = </span><span class="nx">tryFile</span><span class="p">(</span><span class="nx">p</span> <span class="o">+</span> <span class="nx">exts</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">filename</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+
+<span class="nv">Module._findPath = </span><span class="nx">function</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">paths</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">var</span> <span class="nv">exts = </span><span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">===</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">paths = </span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">];</span>
+  <span class="p">}</span>
+
+  <span class="nx">var</span> <span class="nv">trailingSlash = </span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">===</span> <span class="s1">&#39;/&#39;</span><span class="p">);</span>
+
+  <span class="nx">var</span> <span class="nv">cacheKey = </span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="nv">request: </span><span class="nx">request</span><span class="p">,</span> <span class="nv">paths: </span><span class="nx">paths</span><span class="p">});</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">Module</span><span class="p">.</span><span class="nx">_pathCache</span><span class="p">[</span><span class="nx">cacheKey</span><span class="p">])</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">Module</span><span class="p">.</span><span class="nx">_pathCache</span><span class="p">[</span><span class="nx">cacheKey</span><span class="p">];</span>
+  <span class="p">}</span>
+
+  <span class="o">/</span><span class="err">/ For each path</span>
+  <span class="k">for</span> <span class="p">(</span><span class="nx">var</span> <span class="nv">i = </span><span class="mi">0</span><span class="p">,</span> <span class="nv">PL = </span><span class="nx">paths</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">PL</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">var</span> <span class="nv">basePath = </span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">paths</span><span class="p">[</span><span class="nx">i</span><span class="p">],</span> <span class="nx">request</span><span class="p">);</span>
+    <span class="nx">var</span> <span class="nx">filename</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">trailingSlash</span><span class="p">)</span> <span class="p">{</span>
+      <span class="err">// try to join the request to the path</span>
+      <span class="nv">filename = </span><span class="nx">tryFile</span><span class="p">(</span><span class="nx">basePath</span><span class="p">);</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">filename</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">trailingSlash</span><span class="p">)</span> <span class="p">{</span>
+        <span class="err">// try it with each of the extensions</span>
+        <span class="nv">filename = </span><span class="nx">tryExtensions</span><span class="p">(</span><span class="nx">basePath</span><span class="p">,</span> <span class="nx">exts</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nv">filename = </span><span class="nx">tryPackage</span><span class="p">(</span><span class="nx">basePath</span><span class="p">,</span> <span class="nx">exts</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+      <span class="err">// try it with each of the extensions at &quot;index&quot;</span>
+      <span class="nv">filename = </span><span class="nx">tryExtensions</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">basePath</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">),</span> <span class="nx">exts</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">Module</span><span class="p">.</span><span class="nx">_pathCache</span><span class="p">[</span><span class="nx">cacheKey</span><span class="p">]</span> <span class="o">=</span> <span class="nx">filename</span><span class="p">;</span>
+      <span class="k">return</span> <span class="nx">filename</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="err">// &#39;from&#39; is the __dirname of the module.</span>
+<span class="nv">Module._nodeModulePaths = </span><span class="nx">function</span><span class="p">(</span><span class="nx">from</span><span class="p">)</span> <span class="p">{</span>
+  <span class="err">// guarantee that &#39;from&#39; is absolute.</span>
+  <span class="nv">from = </span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">from</span><span class="p">);</span>
+
+  <span class="err">// note: this approach *only* works when the path is guaranteed</span>
+  <span class="o">/</span><span class="err">/ to be absolute.  Doing a fully-edge-case-correct path.split</span>
+  <span class="o">/</span><span class="err">/ that works on both Windows and Posix is non-trivial.</span>
+  <span class="nx">var</span> <span class="nv">splitRe = </span><span class="nx">process</span><span class="p">.</span><span class="nx">platform</span> <span class="o">===</span> <span class="s1">&#39;win32&#39;</span> <span class="o">?</span> <span class="sr">/[\/\\]/</span> <span class="o">:</span> <span class="sr">/\//</span><span class="p">;</span>
+  <span class="err">// yes, &#39;/&#39; works on both, but let&#39;s be a little canonical.</span>
+  <span class="nx">var</span> <span class="nv">joiner = </span><span class="nx">process</span><span class="p">.</span><span class="nx">platform</span> <span class="o">===</span> <span class="s1">&#39;win32&#39;</span> <span class="o">?</span> <span class="s1">&#39;\\&#39;</span> <span class="o">:</span> <span class="s1">&#39;/&#39;</span><span class="p">;</span>
+  <span class="nx">var</span> <span class="nv">paths = </span><span class="p">[];</span>
+  <span class="nx">var</span> <span class="nv">parts = </span><span class="nx">from</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="nx">splitRe</span><span class="p">);</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="nx">var</span> <span class="nv">tip = </span><span class="nx">parts</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="nx">tip</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">tip</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>
+    <span class="err">// don&#39;t search in .../node_modules/node_modules</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">parts</span><span class="p">[</span><span class="nx">tip</span><span class="p">]</span> <span class="o">===</span> <span class="s1">&#39;node_modules&#39;</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>
+    <span class="nx">var</span> <span class="nv">dir = </span><span class="nx">parts</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">tip</span> <span class="o">+</span> <span class="mi">1</span><span class="p">).</span><span class="nx">concat</span><span class="p">(</span><span class="s1">&#39;node_modules&#39;</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="nx">joiner</span><span class="p">);</span>
+    <span class="nx">paths</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">dir</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="nx">paths</span><span class="p">;</span>
+<span class="p">};</span>
+
+
+<span class="nv">Module._resolveLookupPaths = </span><span class="nx">function</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">parent</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">exists</span><span class="p">(</span><span class="nx">request</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nx">request</span><span class="p">,</span> <span class="p">[]];</span>
+  <span class="p">}</span>
+
+  <span class="nx">var</span> <span class="nv">start = </span><span class="nx">request</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">start</span> <span class="o">!==</span> <span class="s1">&#39;./&#39;</span> <span class="o">&amp;&amp;</span> <span class="nx">start</span> <span class="o">!==</span> <span class="s1">&#39;..&#39;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">var</span> <span class="nv">paths = </span><span class="nx">modulePaths</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">parent</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">parent</span><span class="p">.</span><span class="nx">paths</span><span class="p">)</span> <span class="nv">parent.paths = </span><span class="p">[];</span>
+      <span class="nv">paths = </span><span class="nx">parent</span><span class="p">.</span><span class="nx">paths</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">paths</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nx">request</span><span class="p">,</span> <span class="nx">paths</span><span class="p">];</span>
+  <span class="p">}</span>
+
+  <span class="o">/</span><span class="err">/ with --eval, parent.id is not set and parent.filename is null</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">parent</span> <span class="o">||</span> <span class="o">!</span><span class="nx">parent</span><span class="p">.</span><span class="nx">id</span> <span class="o">||</span> <span class="o">!</span><span class="nx">parent</span><span class="p">.</span><span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+    <span class="err">// make require(&#39;./path/to/foo&#39;) work - normally the path is taken</span>
+    <span class="o">/</span><span class="err">/ from realpath(__filename) but with eval there is no filename</span>
+    <span class="nx">var</span> <span class="nv">mainPaths = </span><span class="p">[</span><span class="s1">&#39;.&#39;</span><span class="p">].</span><span class="nx">concat</span><span class="p">(</span><span class="nx">modulePaths</span><span class="p">);</span>
+    <span class="nv">mainPaths = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_nodeModulePaths</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">).</span><span class="nx">concat</span><span class="p">(</span><span class="nx">mainPaths</span><span class="p">);</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nx">request</span><span class="p">,</span> <span class="nx">mainPaths</span><span class="p">];</span>
+  <span class="p">}</span>
+
+  <span class="o">/</span><span class="err">/ Is the parent an index module?</span>
+  <span class="o">/</span><span class="err">/ We can assume the parent has a valid extension,</span>
+  <span class="o">/</span><span class="err">/ as it already has been accepted as a module.</span>
+  <span class="nx">var</span> <span class="nv">isIndex = </span><span class="sr">/^index\.\w+?$/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">basename</span><span class="p">(</span><span class="nx">parent</span><span class="p">.</span><span class="nx">filename</span><span class="p">));</span>
+  <span class="nx">var</span> <span class="nv">parentIdPath = </span><span class="nx">isIndex</span> <span class="o">?</span> <span class="nv">parent.id : </span><span class="nx">path</span><span class="p">.</span><span class="nx">dirname</span><span class="p">(</span><span class="nx">parent</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+  <span class="nx">var</span> <span class="nv">id = </span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">parentIdPath</span><span class="p">,</span> <span class="nx">request</span><span class="p">);</span>
+
+  <span class="err">// make sure require(&#39;./path&#39;) and require(&#39;path&#39;) get distinct ids, even</span>
+  <span class="o">/</span><span class="err">/ when called from the toplevel js file</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">parentIdPath</span> <span class="o">===</span> <span class="s1">&#39;.&#39;</span> <span class="o">&amp;&amp;</span> <span class="nx">id</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="o">===</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">id = </span><span class="s1">&#39;./&#39;</span> <span class="o">+</span> <span class="nx">id</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nx">debug</span><span class="p">(</span><span class="s1">&#39;RELATIVE: requested:&#39;</span> <span class="o">+</span> <span class="nx">request</span> <span class="o">+</span>
+        <span class="s1">&#39; set ID to: &#39;</span> <span class="o">+</span> <span class="nx">id</span> <span class="o">+</span> <span class="s1">&#39; from &#39;</span> <span class="o">+</span> <span class="nx">parent</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="p">[</span><span class="nx">id</span><span class="p">,</span> <span class="p">[</span><span class="nx">path</span><span class="p">.</span><span class="nx">dirname</span><span class="p">(</span><span class="nx">parent</span><span class="p">.</span><span class="nx">filename</span><span class="p">)]];</span>
+<span class="p">};</span>
+
+
+<span class="nv">Module._load = </span><span class="nx">function</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">parent</span><span class="p">,</span> <span class="nx">isMain</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">parent</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">debug</span><span class="p">(</span><span class="s1">&#39;Module._load REQUEST  &#39;</span> <span class="o">+</span> <span class="p">(</span><span class="nx">request</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; parent: &#39;</span> <span class="o">+</span> <span class="nx">parent</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="nx">var</span> <span class="nv">filename = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_resolveFilename</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">parent</span><span class="p">);</span>
+
+  <span class="nx">var</span> <span class="nv">cachedModule = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_cache</span><span class="p">[</span><span class="nx">filename</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">cachedModule</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">cachedModule</span><span class="p">.</span><span class="nx">exports</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">exists</span><span class="p">(</span><span class="nx">filename</span><span class="p">))</span> <span class="p">{</span>
+    <span class="err">// REPL is a special case, because it needs the real require.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">filename</span> <span class="o">==</span> <span class="s1">&#39;repl&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">var</span> <span class="nv">replModule = </span><span class="k">new</span> <span class="nx">Module</span><span class="p">(</span><span class="s1">&#39;repl&#39;</span><span class="p">);</span>
+      <span class="nx">replModule</span><span class="p">.</span><span class="nx">_compile</span><span class="p">(</span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">getSource</span><span class="p">(</span><span class="s1">&#39;repl&#39;</span><span class="p">),</span> <span class="s1">&#39;repl.js&#39;</span><span class="p">);</span>
+      <span class="nv">NativeModule._cache.repl = </span><span class="nx">replModule</span><span class="p">;</span>
+      <span class="k">return</span> <span class="nx">replModule</span><span class="p">.</span><span class="nx">exports</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">debug</span><span class="p">(</span><span class="s1">&#39;load native module &#39;</span> <span class="o">+</span> <span class="nx">request</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nx">NativeModule</span><span class="p">.</span><span class="nx">require</span><span class="p">(</span><span class="nx">filename</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="nx">var</span> <span class="nv">module = </span><span class="k">new</span> <span class="nx">Module</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span> <span class="nx">parent</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="nx">isMain</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">process.mainModule = </span><span class="nx">module</span><span class="p">;</span>
+    <span class="nv">module.id = </span><span class="s1">&#39;.&#39;</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nx">Module</span><span class="p">.</span><span class="nx">_cache</span><span class="p">[</span><span class="nx">filename</span><span class="p">]</span> <span class="o">=</span> <span class="nx">module</span><span class="p">;</span>
+
+  <span class="nx">var</span> <span class="nv">hadException = </span><span class="kc">true</span><span class="p">;</span>
+
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="nx">module</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="nx">filename</span><span class="p">);</span>
+    <span class="nv">hadException = </span><span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">hadException</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">delete</span> <span class="nx">Module</span><span class="p">.</span><span class="nx">_cache</span><span class="p">[</span><span class="nx">filename</span><span class="p">];</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="nv">Module._resolveFilename = </span><span class="nx">function</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">parent</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">exists</span><span class="p">(</span><span class="nx">request</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">request</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nx">var</span> <span class="nv">resolvedModule = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_resolveLookupPaths</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">parent</span><span class="p">);</span>
+  <span class="nx">var</span> <span class="nv">id = </span><span class="nx">resolvedModule</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+  <span class="nx">var</span> <span class="nv">paths = </span><span class="nx">resolvedModule</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+  <span class="err">// look up the filename first, since that&#39;s the cache key.</span>
+  <span class="nx">debug</span><span class="p">(</span><span class="s1">&#39;looking for &#39;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span> <span class="o">+</span>
+        <span class="s1">&#39; in &#39;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">paths</span><span class="p">));</span>
+
+  <span class="nx">var</span> <span class="nv">filename = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_findPath</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">paths</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">var</span> <span class="nv">err = </span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;Cannot find module &#39;&quot;</span> <span class="o">+</span> <span class="nx">request</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+    <span class="nv">err.code = </span><span class="s1">&#39;MODULE_NOT_FOUND&#39;</span><span class="p">;</span>
+    <span class="k">throw</span> <span class="nx">err</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nx">filename</span><span class="p">;</span>
+<span class="p">};</span>
+
+
+<span class="nv">Module.prototype.load = </span><span class="nx">function</span><span class="p">(</span><span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">debug</span><span class="p">(</span><span class="s1">&#39;load &#39;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">filename</span><span class="p">)</span> <span class="o">+</span>
+        <span class="s1">&#39; for module &#39;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">id</span><span class="p">));</span>
+
+  <span class="nx">assert</span><span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">loaded</span><span class="p">);</span>
+  <span class="k">this</span><span class="p">.</span><span class="nv">filename = </span><span class="nx">filename</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nv">paths = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_nodeModulePaths</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">dirname</span><span class="p">(</span><span class="nx">filename</span><span class="p">));</span>
+
+  <span class="nx">var</span> <span class="nv">extension = </span><span class="nx">path</span><span class="p">.</span><span class="nx">extname</span><span class="p">(</span><span class="nx">filename</span><span class="p">)</span> <span class="o">||</span> <span class="s1">&#39;.js&#39;</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">[</span><span class="nx">extension</span><span class="p">])</span> <span class="nv">extension = </span><span class="s1">&#39;.js&#39;</span><span class="p">;</span>
+  <span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">[</span><span class="nx">extension</span><span class="p">](</span><span class="k">this</span><span class="p">,</span> <span class="nx">filename</span><span class="p">);</span>
+  <span class="k">this</span><span class="p">.</span><span class="nv">loaded = </span><span class="kc">true</span><span class="p">;</span>
+<span class="p">};</span>
+
+
+<span class="nv">Module.prototype.require = </span><span class="nx">function</span><span class="p">(</span><span class="nx">path</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">Module</span><span class="p">.</span><span class="nx">_load</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
+<span class="p">};</span>
+
+
+<span class="err">// Resolved path to process.argv[1] will be lazily placed here</span>
+<span class="o">/</span><span class="err">/ (needed for setting breakpoint when called with --debug-brk)</span>
+<span class="nx">var</span> <span class="nx">resolvedArgv</span><span class="p">;</span>
+
+
+<span class="err">// Returns exception if any</span>
+<span class="nv">Module.prototype._compile = </span><span class="nx">function</span><span class="p">(</span><span class="nx">content</span><span class="p">,</span> <span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">var</span> <span class="nv">self = </span><span class="k">this</span><span class="p">;</span>
+  <span class="err">// remove shebang</span>
+  <span class="nv">content = </span><span class="nx">content</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^\#\!.*/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+
+  <span class="nx">function</span> <span class="nx">require</span><span class="p">(</span><span class="nx">path</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">self</span><span class="p">.</span><span class="nx">require</span><span class="p">(</span><span class="nx">path</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="nv">require.resolve = </span><span class="nx">function</span><span class="p">(</span><span class="nx">request</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">Module</span><span class="p">.</span><span class="nx">_resolveFilename</span><span class="p">(</span><span class="nx">request</span><span class="p">,</span> <span class="nx">self</span><span class="p">);</span>
+  <span class="p">};</span>
+
+  <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">require</span><span class="p">,</span> <span class="s1">&#39;paths&#39;</span><span class="p">,</span> <span class="p">{</span> <span class="nv">get: </span><span class="nx">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s1">&#39;require.paths is removed. Use &#39;</span> <span class="o">+</span>
+                    <span class="s1">&#39;node_modules folders, or the NODE_PATH &#39;</span> <span class="o">+</span>
+                    <span class="s1">&#39;environment variable instead.&#39;</span><span class="p">);</span>
+  <span class="p">}});</span>
+
+  <span class="nv">require.main = </span><span class="nx">process</span><span class="p">.</span><span class="nx">mainModule</span><span class="p">;</span>
+
+  <span class="err">// Enable support to add extra extension types</span>
+  <span class="nv">require.extensions = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">;</span>
+  <span class="nv">require.registerExtension = </span><span class="nx">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s1">&#39;require.registerExtension() removed. Use &#39;</span> <span class="o">+</span>
+                    <span class="s1">&#39;require.extensions instead.&#39;</span><span class="p">);</span>
+  <span class="p">};</span>
+
+  <span class="nv">require.cache = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_cache</span><span class="p">;</span>
+
+  <span class="nx">var</span> <span class="nv">dirname = </span><span class="nx">path</span><span class="p">.</span><span class="nx">dirname</span><span class="p">(</span><span class="nx">filename</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="nx">Module</span><span class="p">.</span><span class="nx">_contextLoad</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">id</span> <span class="o">!==</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">debug</span><span class="p">(</span><span class="s1">&#39;load submodule&#39;</span><span class="p">);</span>
+      <span class="err">// not root module</span>
+      <span class="nx">var</span> <span class="nv">sandbox = </span><span class="p">{};</span>
+      <span class="k">for</span> <span class="p">(</span><span class="nx">var</span> <span class="nx">k</span> <span class="k">in</span> <span class="nx">global</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">sandbox</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span> <span class="o">=</span> <span class="nx">global</span><span class="p">[</span><span class="nx">k</span><span class="p">];</span>
+      <span class="p">}</span>
+      <span class="nv">sandbox.require = </span><span class="nx">require</span><span class="p">;</span>
+      <span class="nv">sandbox.exports = </span><span class="nx">self</span><span class="p">.</span><span class="nx">exports</span><span class="p">;</span>
+      <span class="nv">sandbox.__filename = </span><span class="nx">filename</span><span class="p">;</span>
+      <span class="nv">sandbox.__dirname = </span><span class="nx">dirname</span><span class="p">;</span>
+      <span class="nv">sandbox.module = </span><span class="nx">self</span><span class="p">;</span>
+      <span class="nv">sandbox.global = </span><span class="nx">sandbox</span><span class="p">;</span>
+      <span class="nv">sandbox.root = </span><span class="nx">root</span><span class="p">;</span>
+
+      <span class="k">return</span> <span class="nx">runInNewContext</span><span class="p">(</span><span class="nx">content</span><span class="p">,</span> <span class="nx">sandbox</span><span class="p">,</span> <span class="nx">filename</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nx">debug</span><span class="p">(</span><span class="s1">&#39;load root module&#39;</span><span class="p">);</span>
+    <span class="err">// root module</span>
+    <span class="nv">global.require = </span><span class="nx">require</span><span class="p">;</span>
+    <span class="nv">global.exports = </span><span class="nx">self</span><span class="p">.</span><span class="nx">exports</span><span class="p">;</span>
+    <span class="nv">global.__filename = </span><span class="nx">filename</span><span class="p">;</span>
+    <span class="nv">global.__dirname = </span><span class="nx">dirname</span><span class="p">;</span>
+    <span class="nv">global.module = </span><span class="nx">self</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="nx">runInThisContext</span><span class="p">(</span><span class="nx">content</span><span class="p">,</span> <span class="nx">filename</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="o">/</span><span class="err">/ create wrapper function</span>
+  <span class="nx">var</span> <span class="nv">wrapper = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">wrap</span><span class="p">(</span><span class="nx">content</span><span class="p">);</span>
+
+  <span class="nx">var</span> <span class="nv">compiledWrapper = </span><span class="nx">runInThisContext</span><span class="p">(</span><span class="nx">wrapper</span><span class="p">,</span> <span class="nx">filename</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">global</span><span class="p">.</span><span class="nx">v8debug</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">resolvedArgv</span><span class="p">)</span> <span class="p">{</span>
+      <span class="err">// we enter the repl if we&#39;re not given a filename argument.</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="p">{</span>
+        <span class="nv">resolvedArg = </span><span class="nx">Module</span><span class="p">.</span><span class="nx">_resolveFilename</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="kc">null</span><span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nv">resolvedArg = </span><span class="s1">&#39;repl&#39;</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="o">/</span><span class="err">/ Set breakpoint on module start</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">filename</span> <span class="o">===</span> <span class="nx">resolvedArgv</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">global</span><span class="p">.</span><span class="nx">v8debug</span><span class="p">.</span><span class="nx">Debug</span><span class="p">.</span><span class="nx">setBreakPoint</span><span class="p">(</span><span class="nx">compiledWrapper</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="nx">var</span> <span class="nv">args = </span><span class="p">[</span><span class="nx">self</span><span class="p">.</span><span class="nx">exports</span><span class="p">,</span> <span class="nx">require</span><span class="p">,</span> <span class="nx">self</span><span class="p">,</span> <span class="nx">filename</span><span class="p">,</span> <span class="nx">dirname</span><span class="p">];</span>
+  <span class="k">return</span> <span class="nx">compiledWrapper</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">exports</span><span class="p">,</span> <span class="nx">args</span><span class="p">);</span>
+<span class="p">};</span>
+
+
+<span class="nx">function</span> <span class="nx">stripBOM</span><span class="p">(</span><span class="nx">content</span><span class="p">)</span> <span class="p">{</span>
+  <span class="err">// Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)</span>
+  <span class="o">/</span><span class="err">/ because the buffer-to-string conversion in &#39;fs.readFileSync()&#39;</span>
+  <span class="o">/</span><span class="err">/ translates it to FEFF, the UTF-16 BOM.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nx">content</span><span class="p">.</span><span class="nx">charCodeAt</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">===</span> <span class="mh">0xFEFF</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">content = </span><span class="nx">content</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nx">content</span><span class="p">;</span>
+<span class="p">}</span>
+
+
+<span class="o">/</span><span class="err">/ Native extension for .js</span>
+<span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">[</span><span class="s1">&#39;.js&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">function</span><span class="p">(</span><span class="nx">module</span><span class="p">,</span> <span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">var</span> <span class="nv">content = </span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">).</span><span class="nx">readFileSync</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span> <span class="s1">&#39;utf8&#39;</span><span class="p">);</span>
+  <span class="nx">module</span><span class="p">.</span><span class="nx">_compile</span><span class="p">(</span><span class="nx">stripBOM</span><span class="p">(</span><span class="nx">content</span><span class="p">),</span> <span class="nx">filename</span><span class="p">);</span>
+<span class="p">};</span>
+
+
+<span class="err">// Native extension for .json</span>
+<span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">[</span><span class="s1">&#39;.json&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">function</span><span class="p">(</span><span class="nx">module</span><span class="p">,</span> <span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">var</span> <span class="nv">content = </span><span class="nx">NativeModule</span><span class="p">.</span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">).</span><span class="nx">readFileSync</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span> <span class="s1">&#39;utf8&#39;</span><span class="p">);</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="nv">module.exports = </span><span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">stripBOM</span><span class="p">(</span><span class="nx">content</span><span class="p">));</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">err.message = </span><span class="nx">filename</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="p">;</span>
+    <span class="k">throw</span> <span class="nx">err</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+
+<span class="err">//Native extension for .node</span>
+<span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">[</span><span class="s1">&#39;.node&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">function</span><span class="p">(</span><span class="nx">module</span><span class="p">,</span> <span class="nx">filename</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">process</span><span class="p">.</span><span class="nx">dlopen</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span> <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span><span class="p">);</span>
+<span class="p">};</span>
+
+
+<span class="err">// bootstrap main module.</span>
+<span class="nv">Module.runMain = </span><span class="nx">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="err">// Load the main module--the command line argument.</span>
+  <span class="nx">Module</span><span class="p">.</span><span class="nx">_load</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="kc">null</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+<span class="p">};</span>
+
+<span class="nv">Module._initPaths = </span><span class="nx">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nx">var</span> <span class="nv">paths = </span><span class="p">[</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">execPath</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;lib&#39;</span><span class="p">,</span> <span class="s1">&#39;node&#39;</span><span class="p">)];</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">[</span><span class="s1">&#39;HOME&#39;</span><span class="p">])</span> <span class="p">{</span>
+    <span class="nx">paths</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">[</span><span class="s1">&#39;HOME&#39;</span><span class="p">],</span> <span class="s1">&#39;.node_libraries&#39;</span><span class="p">));</span>
+    <span class="nx">paths</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">[</span><span class="s1">&#39;HOME&#39;</span><span class="p">],</span> <span class="s1">&#39;.node_modules&#39;</span><span class="p">));</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">[</span><span class="s1">&#39;NODE_PATH&#39;</span><span class="p">])</span> <span class="p">{</span>
+    <span class="nx">var</span> <span class="nv">splitter = </span><span class="nx">process</span><span class="p">.</span><span class="nx">platform</span> <span class="o">===</span> <span class="s1">&#39;win32&#39;</span> <span class="o">?</span> <span class="s1">&#39;;&#39;</span> <span class="o">:</span> <span class="s1">&#39;:&#39;</span><span class="p">;</span>
+    <span class="nv">paths = </span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">[</span><span class="s1">&#39;NODE_PATH&#39;</span><span class="p">].</span><span class="nx">split</span><span class="p">(</span><span class="nx">splitter</span><span class="p">).</span><span class="nx">concat</span><span class="p">(</span><span class="nx">paths</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="nv">modulePaths = </span><span class="nx">paths</span><span class="p">;</span>
+
+  <span class="err">// clone as a read-only copy, for introspection.</span>
+  <span class="nv">Module.globalPaths = </span><span class="nx">modulePaths</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">};</span>
+
+<span class="err">// bootstrap repl</span>
+<span class="nv">Module.requireRepl = </span><span class="nx">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">Module</span><span class="p">.</span><span class="nx">_load</span><span class="p">(</span><span class="s1">&#39;repl&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">);</span>
+<span class="p">};</span>
+
+<span class="nx">Module</span><span class="p">.</span><span class="nx">_initPaths</span><span class="p">();</span>
+
+<span class="err">// backwards compatibility</span>
+<span class="nv">Module.Module = </span><span class="nx">Module</span><span class="p">;</span>
+<span class="o">`</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>We have to make this explicit because CoffeeScript is adding itself to the
+real Module</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">[</span><span class="s1">&#39;.coffee&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">Module</span><span class="p">.</span><span class="nx">_extensions</span><span class="p">[</span><span class="s1">&#39;.js&#39;</span><span class="p">]</span>
+
+
+<span class="nv">Module._isNative = </span><span class="nf">(request) -&gt;</span> <span class="nx">NativeModule</span><span class="p">.</span><span class="nx">exists</span> <span class="nx">request</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
