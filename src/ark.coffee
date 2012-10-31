@@ -27,6 +27,15 @@ read = (path) -> FileSystem.readFileSync(path,'utf-8')
 
 readdir = (path) -> FileSystem.readdirSync(path)
 
+readStream = (stream) -> 
+  buffer = ""
+  fiber = Fiber.current
+  stream.resume()
+  stream.on "data", (data) -> buffer += data
+  stream.on "end", -> fiber.run()
+  Fiber.yield()
+  buffer
+
 stat = (path) -> FileSystem.statSync(path)
 
 Crypto = require "crypto"
@@ -356,8 +365,8 @@ Ark =
   package: (options) ->
 
     # We can get the manifest via an option or we can generate one.
-    manifest = if options.manifest
-      JSON.parse read options.manifest
+    manifest = if options.manifest?
+      JSON.parse readStream options.manifest
     else
       manifest options
       
