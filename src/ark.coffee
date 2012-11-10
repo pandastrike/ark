@@ -360,7 +360,7 @@ Ark =
     error "Please provide source directory via --source option" unless options.source?
 
     # Generate the manifest from the options, format it, and send it to standard out.
-    print JSON.stringify manifest options
+    print JSON.stringify(manifest(options), null, 2)
     
   package: (options) ->
 

@@ -4,3 +4,7 @@ require "starter/tasks/git"
 task :docs do
   sh "docco src/*.coffee"
 end
+
+task :build do
+  `coffee -c -o js src`
+end
