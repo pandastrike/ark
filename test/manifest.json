@@ -1,0 +1,1 @@
+{"source":"/Users/dan/Projects/ark/test","files":["bar.coffee","foo.coffee","index.coffee","manifest.json","package.json"],"native_modules":["assert","child_process","crypto","events","fs","http","https","module","path","querystring","stream","sys","tty","url","util"]}

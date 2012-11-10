@@ -1,0 +1,3 @@
+bar = require "./bar"
+
+module.exports = bar
