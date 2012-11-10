@@ -1,6 +1,6 @@
 {
   "name": "ark",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Packages code for the browser as Node modules.",
   "main": "lib/ark.js",
   "bin": {
