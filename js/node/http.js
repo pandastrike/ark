@@ -95,7 +95,7 @@ Request = (function() {
           });
       }
 
-      var res = new Response;
+      var res = new Response(xhr);
       res.on('ready', function () {
           self.emit('response', res);
       });
@@ -163,7 +163,8 @@ Request = (function() {
     
     var EventEmitter = require('events').EventEmitter;
 
-    var Response = function (res) {
+    var Response = function (xhr) {
+        this.xhr = xhr;
         this.offset = 0;
     };
 
@@ -174,8 +175,8 @@ Request = (function() {
         status2 : true
     };
 
-    function parseHeaders (res) {
-        var lines = res.getAllResponseHeaders().split(/\r?\n/);
+    function parseHeaders (xhr) {
+        var lines = xhr.getAllResponseHeaders().split(/\r?\n/);
         var headers = {};
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i];
@@ -213,14 +214,14 @@ Request = (function() {
     }
 
     Response.prototype.getHeader = function (key) {
-        return this.headers[key.toLowerCase()];
+        return this.headers[key.toLowerCase()] || this.xhr.getResponseHeader(key);
     };
 
-    Response.prototype.handle = function (res) {
-        if (res.readyState === 2 && capable.status2) {
+    Response.prototype.handle = function (xhr) {
+        if (xhr.readyState === 2 && capable.status2) {
             try {
-                this.statusCode = res.status;
-                this.headers = parseHeaders(res);
+                this.statusCode = xhr.status;
+                this.headers = parseHeaders(xhr);
             }
             catch (err) {
                 capable.status2 = false;
@@ -230,39 +231,39 @@ Request = (function() {
                 this.emit('ready');
             }
         }
-        else if (capable.streaming && res.readyState === 3) {
+        else if (capable.streaming && xhr.readyState === 3) {
             try {
                 if (!this.statusCode) {
-                    this.statusCode = res.status;
-                    this.headers = parseHeaders(res);
+                    this.statusCode = xhr.status;
+                    this.headers = parseHeaders(xhr);
                     this.emit('ready');
                 }
             }
             catch (err) {}
 
             try {
-                this.write(res);
+                this.write(xhr);
             }
             catch (err) {
                 capable.streaming = false;
             }
         }
-        else if (res.readyState === 4) {
+        else if (xhr.readyState === 4) {
             if (!this.statusCode) {
-                this.statusCode = res.status;
+                this.statusCode = xhr.status;
                 this.emit('ready');
             }
-            this.write(res);
+            this.write(xhr);
 
-            if (res.error) {
-                this.emit('error', this.getResponse(res));
+            if (xhr.error) {
+                this.emit('error', this.getResponse(xhr));
             }
             else this.emit('end');
         }
     };
 
-    Response.prototype.write = function (res) {
-        var respBody = this.getResponse(res);
+    Response.prototype.write = function (xhr) {
+        var respBody = this.getResponse(xhr);
         if (respBody.toString().match(/ArrayBuffer/)) {
             this.emit('data', new Uint8Array(respBody, this.offset));
             this.offset = respBody.byteLength;
