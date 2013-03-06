@@ -4,8 +4,19 @@
 
 FileSystem = require "fs"
 
-# Convenience method for readability ...
+# Convenience methods for readability ...
 read = (path) -> FileSystem.readFileSync(path,'utf-8')
+
+readStream = (stream) -> 
+  buffer = ""
+  fiber = Fiber.current
+  stream.resume()
+  stream.on "data", (data) -> buffer += data
+  stream.on "end", -> fiber.run()
+  Fiber.yield()
+  buffer
+
+print = console.log
 
 # Module constant for printing the usage.
 usage = read("#{__dirname}/../doc/USAGE")
@@ -71,7 +82,7 @@ options =
 
 # Ff a source directory is specified, use that; otherwise assume we'll read
 # the manifest from stdin.
-options.manifest = process.stdin unless options.source?
+options.manifest = (JSON.parse readStream process.stdin) unless options.source?
 
 # By default, we handle JavaScript, JSON, and CoffeeScript files. Presently,
 # this only affects the `manifest` subcommand when you're not using the
@@ -80,6 +91,6 @@ options.extensions ?= "js,json,coffee"
 
 # Run the subcommand using the options given.
 try 
-  Ark[command](options)
+  print Ark[command](options)
 catch e
   error(e.message)

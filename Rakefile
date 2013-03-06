@@ -6,5 +6,5 @@ task :docs do
 end
 
 task :build do
-  `coffee -c -o js src`
+  `coffee -c -o lib src`
 end

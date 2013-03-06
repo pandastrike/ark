@@ -17,8 +17,6 @@ Util = require "util"
 
 inspect = (thing) -> Util.inspect(thing)
 
-print = console.log
-
 error = (message) -> throw new Error(message)
 
 warn = (message) -> process.stderr.write "#{message}\n"
@@ -26,15 +24,6 @@ warn = (message) -> process.stderr.write "#{message}\n"
 read = (path) -> FileSystem.readFileSync(path,'utf-8')
 
 readdir = (path) -> FileSystem.readdirSync(path)
-
-readStream = (stream) -> 
-  buffer = ""
-  fiber = Fiber.current
-  stream.resume()
-  stream.on "data", (data) -> buffer += data
-  stream.on "end", -> fiber.run()
-  Fiber.yield()
-  buffer
 
 stat = (path) -> FileSystem.statSync(path)
 
@@ -360,22 +349,19 @@ Ark =
     error "Please provide source directory via --source option" unless options.source?
 
     # Generate the manifest from the options, format it, and send it to standard out.
-    print JSON.stringify(manifest(options), null, 2)
+    JSON.stringify(manifest(options), null, 2)
     
   package: (options) ->
 
     # We can get the manifest via an option or we can generate one.
-    manifest = if options.manifest?
-      JSON.parse readStream options.manifest
-    else
-      manifest options
+    options.manifest ?= manifest options
       
     # We process the JavaScript via the `index` function and then, based on the options
     # either minify it or beautify it.
-    print if options.minify
-      minify code index manifest
+    if options.minify
+      minify code index options.manifest
     else
-      beautify code index manifest
+      beautify code index options.manifest
       
 # We wrap the subcommand functions in fibers so we can use fibers within the
 # implementation.
