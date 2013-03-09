@@ -26,6 +26,18 @@ usage = read("#{__dirname}/../doc/USAGE")
 # Optimist gives us a simple interface for handling CLI arguments.
 Optimist = require "optimist"
 
+# We use fibers to make `glob` synchronous - see below.
+Fibers = require "fibers"
+Future = require "fibers/future"
+
+# Take any function and run it as a fiber. 
+run_as_fiber = (fn) ->
+  ->
+    _arguments = arguments
+    Fiber( -> fn(_arguments...) ).run()
+
+
+
 # ## Local Modules
 
 # The subcommands are actually implemented in the [ark][] source file.
@@ -80,17 +92,21 @@ options =
   minify: argv.m or argv.minify
   extensions: argv.x or argv.extensions
 
-# Ff a source directory is specified, use that; otherwise assume we'll read
-# the manifest from stdin.
-options.manifest = (JSON.parse readStream process.stdin) unless options.source?
 
-# By default, we handle JavaScript, JSON, and CoffeeScript files. Presently,
-# this only affects the `manifest` subcommand when you're not using the
-# `--static` option.
-options.extensions ?= "js,json,coffee"
+(Fiber ->
+  
+  # Ff a source directory is specified, use that; otherwise assume we'll read
+  # the manifest from stdin.
+  options.manifest = (JSON.parse readStream process.stdin) unless options.source?
 
-# Run the subcommand using the options given.
-try 
-  print Ark[command](options)
-catch e
-  error(e.message)
+  # By default, we handle JavaScript, JSON, and CoffeeScript files. Presently,
+  # this only affects the `manifest` subcommand when you're not using the
+  # `--static` option.
+  options.extensions ?= "js,json,coffee"
+
+  # Run the subcommand using the options given.
+  try 
+    print Ark[command](options)
+  catch e
+    error(e.message)
+).run()

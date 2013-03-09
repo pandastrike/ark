@@ -363,9 +363,4 @@ Ark =
     else
       beautify code index options.manifest
       
-# We wrap the subcommand functions in fibers so we can use fibers within the
-# implementation.
-Ark.manifest = run_as_fiber Ark.manifest
-Ark.package = run_as_fiber Ark.package
-
 module.exports = Ark
