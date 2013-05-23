@@ -47,13 +47,9 @@ Ark = require "./ark"
 
 # If we run into any trouble, we display an error message and then display
 # the usage string. Perhaps this would be better going to standard error.
-error = (message) ->
-  console.log """
-    ERROR: #{message}
-    
-    #{usage}
-    """
-    
+error = (e) ->
+  message = if e.stack? then e.stack else if e.message? then e.message else e
+  process.stderr.write message
   process.exit(-1)
 
 # We assume we're being invoked from the command-line via the `coffee`
@@ -108,5 +104,5 @@ options =
   try 
     print Ark[command](options)
   catch e
-    error(e.message)
+    error(e)
 ).run()
