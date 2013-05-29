@@ -1,5 +1,5 @@
 {resolve} = require "path"
-{read,type,exists,stat} = require "fairmont"
+{read,type,exists,stat,remove} = require "fairmont"
 CSON = require "c50n"
 glob = require "glob"
 
@@ -14,10 +14,16 @@ hoistManifest = (manifest) ->
     else
       throw new ArgumentError("Invalid manifest")
   
-globExpand = (root,paths) ->
+globExpand = ({root,files,exclude}) ->
   results = []
-  for pattern in paths
+  for pattern in files
     results = results.concat( glob.sync( pattern, cwd: root ) )
+  if exclude?
+    for pattern in exclude
+      for path in glob.sync( pattern, cwd: root )
+        remove( results, path )
+        
+  console.log results
   results
     
 module.exports =
@@ -42,10 +48,10 @@ module.exports =
     
     ({manifest,compilers,minify,file}) ->
       manifest = hoistManifest( manifest )
-      {root,files,apis} = manifest
+      {root,files,exclude, apis} = manifest
       bfs = BFS.create( root )
       include( bfs.compilers, compilers) if compilers?
-      BFS.addFile( bfs, _file ) for _file in globExpand( root, files ) 
+      BFS.addFile( bfs, _file ) for _file in globExpand( manifest ) 
       BFS.addAPI( bfs, api ) for api in apis
       code = BFS.toJavaScript( bfs )
       code = if minify then _minify( code ) else beautify( code )
@@ -76,6 +82,6 @@ module.exports =
     ({manifest,file}, action) ->
       manifest = hoistManifest( manifest )
       {root,files} = manifest
-      sources = [ resolve( manifest), globExpand( root, files ) ]
+      sources = [ resolve( manifest), globExpand( manifest ) ]
       destination = resolve( file )
       mtime sources, destination, action

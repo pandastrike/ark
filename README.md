@@ -26,11 +26,11 @@ The obvious question is: *how is Ark different than browserify?*
     
 ## Usage
 
-1. Create an `ark` directory in your source tree. Put stuff in that directory that you want to ship to the browser. 
+1. Create an `ark` directory in your source tree. Put stuff in that directory that you want to ship to the browser. In Ark parlance, that stuff is called "the ark."
 
-2. Give it a `package.json` file to set the entry point for your ark (using the `main` property). 
+2. Add in a `package.json` file to set the entry point for your ark (using the `main` property). 
 
-3. Create a `manifest.cson` file with the list of files and emulated Node APIs you want to bundle.
+3. Create a `manifest.cson` file with the list of files and emulated Node APIs you want to bundled in your ark.
 
 4. Package up your ark:
 
