@@ -1,108 +1,50 @@
-# Process command line arguments and invoke subcommands.
-
-# ## Native Modules
-
-FileSystem = require "fs"
-
-# Convenience methods for readability ...
-read = (path) -> FileSystem.readFileSync(path,'utf-8')
-
-readStream = (stream) -> 
-  buffer = ""
-  fiber = Fiber.current
-  stream.resume()
-  stream.on "data", (data) -> buffer += data
-  stream.on "end", -> fiber.run()
-  Fiber.yield()
-  buffer
-
-print = console.log
-
-# Module constant for printing the usage.
-usage = read("#{__dirname}/../doc/USAGE")
-
-# ## Package Modules
-
-# Optimist gives us a simple interface for handling CLI arguments.
-Optimist = require "optimist"
-
-# We use fibers to make `glob` synchronous - see below.
-Fibers = require "fibers"
-Future = require "fibers/future"
-
-# Take any function and run it as a fiber. 
-run_as_fiber = (fn) ->
-  ->
-    _arguments = arguments
-    Fiber( -> fn(_arguments...) ).run()
-
-
-
-# ## Local Modules
-
-# The subcommands are actually implemented in the [ark][] source file.
-# [ark]:./ark.html
+{resolve} = require "path"
+{read} = require "fairmont"
 Ark = require "./ark"
 
-
-# If we run into any trouble, we display an error message and then display
-# the usage string. Perhaps this would be better going to standard error.
-error = (e) ->
-  message = if e.stack? then e.stack else if e.message? then e.message else e
-  process.stderr.write message
-  process.exit(-1)
-
-# We assume we're being invoked from the command-line via the `coffee`
-# command. This might not be a reasonable assumption, in which case, we should
-# probably export a function and allow the arguments to be passed in.
-command = process.argv[2]
-
-# Check to make sure we were given a valid subcommand.
-error "No command given." unless command?
-error "Unrecognized command '#{command}'." unless Ark[command]?
-
-# Let optimist convert the command-line arguments into a hash for us, starting
-# with the option after the subcommand.
-argv = Optimist.parse(process.argv[3..])
-
-# There shouldn't be any other standalone arguments besides the subcommand.
-error "Invalid option(s) '#{argv._.join(", ")}'" unless argv._.length == 0
-
-# Check to make sure all the options given are valid.
-valid = "s source z static u uglify x extensions".split(" ")
-for key,value of argv
-  error "Invalid option '#{key}'." unless key in valid or key = "_"
-
-# **Note** We don't provide options for input or output when you could simply
-# use the shell redirection operators. We need `--source` (or `-s`) because
-# you can't redirect a directory in a straightforward an intuitive way. But we
-# don't provide, say, an option to specify the manifest as either input or
-# output, since you can just do something like this:
-#
-#     ark package < ./manifest.json
-
-# Create an options hash by normalizing the options given on the command-line.
-options = 
-  source: argv.s or argv.source
-  static: argv.z or argv.static
-  minify: argv.m or argv.minify
-  extensions: argv.x or argv.extensions
+# Print usage with an optional error message 
+usage = (message) -> 
+  process.stderr.write( "#{message}\n" ) if message?
+  process.stderr.write( read( resolve( __dirname, "..", "doc", "USAGE" ) ) )
+  process.exit( -1 )
 
 
-(Fiber ->
+# The commands object - each ark command is a function taking the 
+# arguments given after the command
+commands = 
   
-  # Ff a source directory is specified, use that; otherwise assume we'll read
-  # the manifest from stdin.
-  options.manifest = (JSON.parse readStream process.stdin) unless options.source?
+  #
+  # The 'package command
+  #
+  package: (argv...) ->
+    
+    options = {}
+    
+    while argv.length > 0
+      switch arg = argv.shift()
+        when "-m", "--manifest" then options.manifest = argv.shift()
+        when "-t", "--mtime" then options.mtime = true
+        when "-f", "--file" then options.file = argv.shift()
+        when "-z", "--minify" then options.minify = true
+        else usage( "Error: invalid argument '#{arg}'" )
+        
+    if options.mtime
+      unless options.file? && options.manifest?
+        usage("You must specify a file to test against") 
+      Ark.mtime options, -> Ark.package( options )
+    else
+      Ark.package( options )    
+      
+  help: -> usage()
+  "-h": -> usage()
+    
+# Okay, process the command-line arguments by extracting the
+# command and sending the remaining arguments
+[_,_,command,argv...] = process.argv
+usage("Error: no command given") unless command?
+usage("Error: Invalid command '#{command}'") unless commands[command]
+commands[command](argv...)
 
-  # By default, we handle JavaScript, JSON, and CoffeeScript files. Presently,
-  # this only affects the `manifest` subcommand when you're not using the
-  # `--static` option.
-  options.extensions ?= "js,json,coffee"
-
-  # Run the subcommand using the options given.
-  try 
-    print Ark[command](options)
-  catch e
-    error(e)
-).run()
+# TODO: add a command called check(?) to see a given file is out-of-date
+# relative to the manifest. Should be something that can be called from 
+# code as well, like Ark.package ... ex: Ark.check. Or ... Ark.each ?

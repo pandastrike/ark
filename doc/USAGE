@@ -1,49 +1,26 @@
-USAGE - ark
 
-Package up your browser Javascript using the Node module system. 
+NAME
 
-You can use `require` just like in Node. Put another way, you can reuse
-server-side code in the browser and still use `require` and NPM.
+  ark -- package source files into a browser-friendly Javascript file
+  
+SYNOPSIS
 
+  ark <subcommand> <options>
+  
 COMMANDS
 
-ark is invoked with one of the following subcommands:
-
-  manifest          Generate a manifest of the files to be packaged. This can
-                    then be used to verify what is being packaged, or even
-                    modified to remove extraneous files.
+  ark package <options>
   
-  package           Package files up and generate a single Javascript file.
-                    
-OPTIONS
-
-  --source, -s      Root directory of the code to be packaged. Should include a
-                    package.json file. If --source is not given, then a manifest
-                    will be read from stdin if possible.
-                    
-  --static, -z      Do static dependency analysis, beginning with the main entry
-                    point specified in the root package.json file.
-                    
-  --minify, -m      Minifies (using uglify-js) the code when packaging.
+  SYNOPSIS 
   
-  --extensions, -x  Include files with the specified extensions. Multiple 
-                    extensions can be specified, separated by commas.
-                    
-EXAMPLES
-
-To use static analysis to generate a manifest of what will be packaged up:
-
-    ark manifest --static --source cs/lib/web > manifest.txt
-
-Then you can package up the manifest like this:    
-
-    ark package --minify < manifest.txt >  web/js/web-api.js
-
-Or, in one step, without static analysis (just packaging all your source files up):
-
-    ark package --minify --source cs/lib/web > web/js/web-api.js
-
-Or, automagically picking up and compiling CoffeeScript:
-
-    ark package --minify web/js/web-api.js --source cs/src/web > web/js/web-api.js  
+  Perform the packaging for a given manifest, writing the resulting JavaScript
+  to standard output.
   
+  OPTIONS
+  
+    --manifest, -m  <path>            Path to manifest for the ark      
+    --file, -f <path>                 Output file -- defaults to standard
+                                      Required if --mtime is used
+    --mtime, -t                       Only generate the package if it's 
+                                      out-of-date relative to the manifest
+    --minify, -z                      Minify the generated Javascript

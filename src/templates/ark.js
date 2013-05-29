@@ -6,12 +6,15 @@ var global = (function() {
   
   return {
     filesystem: {
-      root: <%- JSON.stringify(@root) %>,
-      content: <%- JSON.stringify(@content) %>,
-      native_modules: <%- JSON.stringify(@native_modules) %>,
-      module_functions: {<% for ref,code of @module_functions: %>
-          "<%- ref %>": <%- code %>,
-        <% end %>
+      root: <%- JSON.stringify( @root ) %>,
+      content: <%- JSON.stringify( @content ) %>,
+      modules: {
+        api: <%- JSON.stringify( @modules.api ) %>,
+        function: {
+          <% for ref, code of @modules.function: %>
+            "<%- ref %>": <%- code %>,
+          <% end %>
+        }
       },
       read: function(reference) {
         if (reference.__ref != null) {
@@ -29,11 +32,12 @@ var process = (function() {
     evals: {
       NodeScript: {
         runInThisContext: function(source, filename, returnResult) {
-          return global.filesystem.module_functions[source];
+          return global.filesystem.modules.function[source];
         },
         runInNewContext: function(source, filename, returnResult) {
-          console.log("WARNING: runInNewContext doesn't work in the browser.");
-          return global.filesystem.module_functions[source];
+          console.log("WARNING: runInNewContext doesn't work " +
+            "in the browser.");
+          return global.filesystem.module.function[source];
         }
       }
     }
@@ -129,7 +133,7 @@ var NativeModule = (function() {
   };
   ;
 
-  _ref = global.filesystem.native_modules;
+  _ref = global.filesystem.modules.api;
   for (name in _ref) {
     ref = _ref[name];
     NativeModule._source[name] = global.filesystem.read(ref);
