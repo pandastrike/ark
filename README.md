@@ -32,31 +32,40 @@ The obvious question is: *how is Ark different than browserify?*
 
 3. Create a `manifest.cson` file with the list of files and emulated Node APIs you want to bundle.
 
-  The manifest file might look like this:
-
-    root: "/Users/dan/Projects/ark/test"
-    files: [
-      "bar.coffee"
-      "foo.coffee"
-      "index.coffee"
-      "package.json"
-    ]
-    apis: [ "assert", "child_process", "crypto", "events", "fs", "http",  
-            "https", "module", "path", "querystring", "stream", "sys", "tty", 
-            "url", "util" ]
-
-
 4. Package up your ark:
 
     ark package -m <manifest> -f <path-to-javascript>
 
+### The Manifest
+
+The manifest file might look like this:
+
+  root: "/Users/dan/Projects/ark/test"
+  files: [
+    "bar.coffee"
+    "foo.coffee"
+    "index.coffee"
+    "package.json"
+  ]
+  apis: [ "assert", "child_process", "crypto", "events", "fs", "http",  
+          "https", "module", "path", "querystring", "stream", "sys", "tty", 
+          "url", "util" ]
+
 That's it. There's never any question about which files or APIs are included, because you control it via the manifest.
+
+### Conditional Generation
 
 To package up your ark only if it's out-of-date, use the `-t` option:
 
   ark package -m <manifest> -f <path-to-javascript> -t
 
-You can also use standard input for the manifest and standard output for the bundled JavaScript. However, you can't use standard output with the `-t` option.
+You can also use standard standard output for the bundled JavaScript. However, you can't use standard output with the `-t` option.
+
+### More Details
+
+See the [man page for more][1], or just type `ark help`.
+
+[1]:https://raw.github.com/dyoder/ark/master/doc/USAGE
 
 ## API
 

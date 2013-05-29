@@ -8,7 +8,6 @@ module.exports =
     
     {createWriteStream} = require "fs"
     CSON = require "c50n"
-    {readStream,read,type} = require "fairmont"
     BFS = require "./bfs"        
 
     _minify = do ->
@@ -24,9 +23,11 @@ module.exports =
       (code) -> _beautify code, indent_size: 2
     
     ({manifest,compilers,minify,file}) ->
-      manifest ?= readStream( process.stdin )
       if type(manifest) == "string"
-        manifest = CSON.parse( read( resolve( manifest ) ) )
+        manifest = if manifest == "-"
+          CSON.parse( read("/dev/stdin") )
+        else
+          CSON.parse( read( resolve( manifest ) ) )
       {root,files,apis} = manifest
       bfs = BFS.create( root )
       include( bfs.compilers, compilers) if compilers?

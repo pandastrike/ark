@@ -19,7 +19,8 @@ COMMANDS
   OPTIONS
   
     --manifest, -m  <path>            Path to manifest for the ark. Defaults to
-                                      `ark.cson` in the current directory.
+                                      `ark.cson` in the current directory. Set it
+                                      to `-` to read from standard input.
                                       
     --file, -f <path>                 Output file -- defaults to standard 
                                       output. Required if --mtime is used.
