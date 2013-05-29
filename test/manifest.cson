@@ -1,8 +1,6 @@
 root: "/Users/dan/Projects/ark/test"
 files: [
-  "bar.coffee"
-  "foo.coffee"
-  "index.coffee"
+  "**/*.coffee"
   "package.json"
 ]
 apis: [ "assert", "child_process", "crypto", "events", "fs", "http", "https", "module",

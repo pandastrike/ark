@@ -43,6 +43,7 @@ module.exports =
     # Generate a reference to the content. Avoid storing it twice
     # under different pathnames.
     localPath = resolve( bfs.local.root, path )
+    return unless stat( localPath ).isFile()
     content = read( localPath )
     reference = md5( content )
     

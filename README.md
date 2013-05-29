@@ -42,16 +42,14 @@ The manifest file might look like this:
 
   root: "/Users/dan/Projects/ark/test"
   files: [
-    "bar.coffee"
-    "foo.coffee"
-    "index.coffee"
+    "**/*.coffee"
     "package.json"
   ]
   apis: [ "assert", "child_process", "crypto", "events", "fs", "http",  
           "https", "module", "path", "querystring", "stream", "sys", "tty", 
           "url", "util" ]
 
-That's it. There's never any question about which files or APIs are included, because you control it via the manifest.
+That's it. There's never any question about which files or APIs are included, because you control it via the manifest. Also, we can use any glob pattern in our list of files to save typing.
 
 ### Conditional Generation
 

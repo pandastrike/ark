@@ -1,7 +1,25 @@
 {resolve} = require "path"
 {read,type,exists,stat} = require "fairmont"
 CSON = require "c50n"
+glob = require "glob"
 
+hoistManifest = (manifest) ->
+  switch type( manifest )
+    when "object" then manifest
+    when "string"
+      if manifest == "-"
+        CSON.parse( read("/dev/stdin") )
+      else
+        CSON.parse( read( resolve( manifest ) ) )
+    else
+      throw new ArgumentError("Invalid manifest")
+  
+globExpand = (root,paths) ->
+  results = []
+  for pattern in paths
+    results = results.concat( glob.sync( pattern, cwd: root ) )
+  results
+    
 module.exports =
 
   package: do ->
@@ -23,15 +41,11 @@ module.exports =
       (code) -> _beautify code, indent_size: 2
     
     ({manifest,compilers,minify,file}) ->
-      if type(manifest) == "string"
-        manifest = if manifest == "-"
-          CSON.parse( read("/dev/stdin") )
-        else
-          CSON.parse( read( resolve( manifest ) ) )
+      manifest = hoistManifest( manifest )
       {root,files,apis} = manifest
       bfs = BFS.create( root )
       include( bfs.compilers, compilers) if compilers?
-      BFS.addFile( bfs, _file ) for _file in files
+      BFS.addFile( bfs, _file ) for _file in globExpand( root, files ) 
       BFS.addAPI( bfs, api ) for api in apis
       code = BFS.toJavaScript( bfs )
       code = if minify then _minify( code ) else beautify( code )
@@ -60,7 +74,8 @@ module.exports =
       return false 
 
     ({manifest,file}, action) ->
-      sources = [ resolve( manifest), 
-        CSON.parse( read( manifest ) ).files... ]
+      manifest = hoistManifest( manifest )
+      {root,files} = manifest
+      sources = [ resolve( manifest), globExpand( root, files ) ]
       destination = resolve( file )
       mtime sources, destination, action
