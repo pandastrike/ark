@@ -29,10 +29,14 @@ commands =
         else usage( "Error: invalid argument '#{arg}'" )
         
     options.manifest ?= "./ark.cson"
+    if options.minify
+      process.stderr.write """
+        WARNING: The --minify option does not appear to be working properly.\n
+      """
     
     if options.mtime
-      unless options.file? && options.manifest?
-        usage("You must specify a file to test against") 
+      unless options.file?
+        usage("The --mtime options requires the --file option.") 
       Ark.mtime options, -> Ark.package( options )
     else
       Ark.package( options )    

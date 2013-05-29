@@ -40,14 +40,14 @@ The obvious question is: *how is Ark different than browserify?*
 
 The manifest file might look like this:
 
-  root: "/Users/dan/Projects/ark/test"
-  files: [
-    "**/*.coffee"
-    "package.json"
-  ]
-  apis: [ "assert", "child_process", "crypto", "events", "fs", "http",  
-          "https", "module", "path", "querystring", "stream", "sys", "tty", 
-          "url", "util" ]
+    root: "/Users/dan/Projects/ark/test"
+    files: [
+      "**/*.coffee"
+      "package.json"
+    ]
+    apis: [ "assert", "child_process", "crypto", "events", "fs", "http",  
+            "https", "module", "path", "querystring", "stream", "sys", "tty", 
+            "url", "util" ]
 
 That's it. There's never any question about which files or APIs are included, because you control it via the manifest. Also, we can use any glob pattern in our list of files to save typing.
 
@@ -55,7 +55,7 @@ That's it. There's never any question about which files or APIs are included, be
 
 To package up your ark only if it's out-of-date, use the `-t` option:
 
-  ark package -m <manifest> -f <path-to-javascript> -t
+    ark package -m <manifest> -f <path-to-javascript> -t
 
 You can also use standard standard output for the bundled JavaScript. However, you can't use standard output with the `-t` option.
 
