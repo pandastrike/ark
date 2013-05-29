@@ -34,21 +34,20 @@ The obvious question is: *how is Ark different than browserify?*
 
   The manifest file might look like this:
 
-    root: "/Users/dan/Projects/ark/test"
-    files: [
-      "bar.coffee"
-      "foo.coffee"
-      "index.coffee"
-      "package.json"
-    ]
-    apis: [ "assert", "child_process", "crypto", "events", "fs", "http",  
-            "https", "module", "path", "querystring", "stream", "sys", "tty", 
-            "url", "util" ]
-
+      root: "/Users/dan/Projects/ark/test"
+      files: [
+        "bar.coffee"
+        "foo.coffee"
+        "index.coffee"
+        "package.json"
+      ]
+      apis: [ "assert", "child_process", "crypto", "events", "fs", "http",  
+              "https", "module", "path", "querystring", "stream", "sys", "tty", 
+              "url", "util" ]
 
 4. Package up your ark:
 
-    ark package -m <manifest> -f <path-to-javascript>
+      ark package -m <manifest> -f <path-to-javascript>
 
 That's it. There's never any question about which files or APIs are included, because you control it via the manifest.
 
