@@ -32,7 +32,7 @@ The obvious question is: *how is Ark different than browserify?*
 
 3. Create a `manifest.cson` file with the list of files and emulated Node APIs you want to bundle.
 
-The manifest file might look like this:
+  The manifest file might look like this:
 
     root: "/Users/dan/Projects/ark/test"
     files: [
@@ -48,7 +48,7 @@ The manifest file might look like this:
 
 4. Package up your ark:
 
-  ark package -m <manifest> -f <path-to-javascript>
+    ark package -m <manifest> -f <path-to-javascript>
 
 That's it. There's never any question about which files or APIs are included, because you control it via the manifest.
 
