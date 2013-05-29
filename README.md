@@ -4,11 +4,21 @@ Ark allows you package up your browser Javascript using the Node module system. 
 
 # Hat Tip
 
-To [browserify][0], which was the original inspiration for Ark.
+To [browserify][0], which was the original inspiration for Ark, and from which I took some code, such as the HTTP implementation.
 
-## How Is Ark Different Than Browserify?
+[0]:http://browserify.org/
 
-Ark is more CoffeeScript-friendly and uses a manifest file to decide what to package up, so you know exactly what is being shipped to the browser.
+## Speaking Of Which ...
+
+The obvious question is: *how is Ark different than browserify?* 
+
+* Ark is more CoffeeScript-friendly
+
+* Ark uses a CSON manifest file to decide what to package up, so you have complete control over what's being shipped to the browser.
+
+* Ark does *not* use the `package.json` `browser` field, or any other specification for generating your bundled JavaScript. Everything you need to know is in the manifest.
+
+* Ark is just simpler, both in terms of usage and implementation. 
 
 ## Installation
 

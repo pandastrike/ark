@@ -55,6 +55,16 @@ var process = (function() {
     },
     nextTick: function(fn) {
       setTimeout( fn, 0 );
+    },
+    stdout: {
+      write: function(string) {
+        console.log( string.trim() );
+      }
+    },
+    stderr: {
+      write: function(string) {
+        console.error( string.trim() )
+      }
     }
   };
 })();
