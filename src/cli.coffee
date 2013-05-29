@@ -28,6 +28,8 @@ commands =
         when "-z", "--minify" then options.minify = true
         else usage( "Error: invalid argument '#{arg}'" )
         
+    options.manifest ?= "./ark.cson"
+    
     if options.mtime
       unless options.file? && options.manifest?
         usage("You must specify a file to test against") 

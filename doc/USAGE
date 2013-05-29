@@ -1,7 +1,7 @@
 
 NAME
 
-  ark -- package source files into a browser-friendly Javascript file
+  ark -- package source files into a browser-friendly JavaScript file
   
 SYNOPSIS
 
@@ -18,9 +18,13 @@ COMMANDS
   
   OPTIONS
   
-    --manifest, -m  <path>            Path to manifest for the ark      
-    --file, -f <path>                 Output file -- defaults to standard
-                                      Required if --mtime is used
+    --manifest, -m  <path>            Path to manifest for the ark. Defaults to
+                                      `ark.cson` in the current directory.
+                                      
+    --file, -f <path>                 Output file -- defaults to standard 
+                                      output. Required if --mtime is used.
+                                      
     --mtime, -t                       Only generate the package if it's 
-                                      out-of-date relative to the manifest
+                                      out-of-date relative to the manifest.
+                                      
     --minify, -z                      Minify the generated Javascript
