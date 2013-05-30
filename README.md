@@ -18,6 +18,8 @@ The obvious question is: *how is Ark different than browserify?*
 
 * Ark does *not* use the `package.json` `browser` field, or any other specification for generating your bundled JavaScript. Everything you need to know is in the manifest.
 
+* Ark allows you to include any arbitrary files into your ark. You can then use the node `fs` API to read them. For example, we often bundle a configuration file that tells us where to find various backend resources.
+
 * Ark is just simpler, both in terms of usage and implementation. 
 
 ## Installation
@@ -50,6 +52,29 @@ The manifest file might look like this:
             "url", "util" ]
 
 That's it. There's never any question about which files or APIs are included, because you control it via the manifest. Also, we can use any glob pattern in our list of files to save typing.
+
+#### Excluding Files
+
+You can also exclude files. For example, if you want to make sure that no files within test directories are committed, you might do something like this:
+
+    root: "/Users/dan/Projects/ark/test"
+    files: [
+      "**/*.coffee"
+      "package.json"
+    ]
+    exclude: [
+      "**/test/**"
+      "**/spec/**"
+    ]
+    apis: [ "assert", "child_process", "crypto", "events", "fs", "http",  
+            "https", "module", "path", "querystring", "stream", "sys", "tty", 
+            "url", "util" ]
+
+#### Checking The Manifest
+
+If you use glob expansion, you might want to see exactly what the result of the expansion is -- you can do this by using the list command:
+
+    ark ls -m <manifest>
 
 ### Conditional Generation
 
