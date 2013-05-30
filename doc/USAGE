@@ -31,3 +31,17 @@ COMMANDS
     --minify, -z                      Minify the generated Javascript.
                                       WARNING: This does not appear to be
                                       working properly.
+                                      
+  ark [list|ls] <options>
+  
+  SYNOPSIS
+  
+  List the files in the manifest. Useful when using globbing in the manifest, 
+  in order to see the results of the glob expansion.
+  
+  OPTIONS
+  
+  --manifest, -m  <path>            Path to manifest for the ark. Defaults to
+                                    `ark.cson` in the current directory. Set it
+                                    to `-` to read from standard input.
+  

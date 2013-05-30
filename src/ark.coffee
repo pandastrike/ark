@@ -1,5 +1,5 @@
 {resolve} = require "path"
-{read,type,exists,stat,remove} = require "fairmont"
+{read,type,exists,stat,remove,uniq} = require "fairmont"
 CSON = require "c50n"
 glob = require "glob"
 
@@ -12,18 +12,16 @@ hoistManifest = (manifest) ->
       else
         CSON.parse( read( resolve( manifest ) ) )
     else
-      throw new ArgumentError("Invalid manifest")
+      throw new TypeError("Invalid manifest")
   
 globExpand = ({root,files,exclude}) ->
   results = []
   for pattern in files
-    results = results.concat( glob.sync( pattern, cwd: root ) )
+    results = uniq( results.concat( glob.sync( pattern, cwd: root ) ) )
   if exclude?
     for pattern in exclude
       for path in glob.sync( pattern, cwd: root )
         remove( results, path )
-        
-  console.log results
   results
     
 module.exports =
@@ -85,3 +83,6 @@ module.exports =
       sources = [ resolve( manifest), globExpand( manifest ) ]
       destination = resolve( file )
       mtime sources, destination, action
+      
+  list: ({manifest}) ->
+    globExpand( hoistManifest( manifest ) )

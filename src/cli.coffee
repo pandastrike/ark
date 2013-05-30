@@ -40,7 +40,22 @@ commands =
       Ark.mtime options, -> Ark.package( options )
     else
       Ark.package( options )    
-      
+  
+  list: ->
+    
+    options = {}
+    
+    while argv.length > 0
+      switch arg = argv.shift()
+        when "-m", "--manifest" then options.manifest = argv.shift()
+        else usage( "Error: invalid argument '#{arg}'" )
+        
+    options.manifest ?= "./ark.cson"
+    
+    process.stdout.write( Ark.list( options ).sort().join("\n") )
+  
+  ls: -> @list()
+  
   help: -> usage()
   "-h": -> usage()
     
