@@ -14,7 +14,7 @@ The obvious question is: *how is Ark different than browserify?*
 
 * Ark is more CoffeeScript-friendly. You don't need to add a transform or plugin to bundle CoffeeScript into your Ark. Also, most of Ark is actually implemented in CoffeeScript in case you want to fork or submit patches.
 
-* Ark uses a CSON manifest file to decide what to package up, so you have complete control over what's being shipped to the browser.
+* Ark uses a CSON manifest file to decide what to package up, so you have complete control over what's being shipped to the browser. Use glob expansion and exclusion to make it easy.
 
 * Ark does *not* use the `package.json` `browser` field, or any other specification for generating your bundled JavaScript. Everything you need to know is in the manifest.
 
