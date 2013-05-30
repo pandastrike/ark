@@ -34,9 +34,7 @@ The obvious question is: *how is Ark different than browserify?*
 
 3. Create a `manifest.cson` file with the list of files and emulated Node APIs you want to bundled in your ark.
 
-4. Package up your ark:
-
-    ark package -m <manifest> -f <path-to-javascript>
+4. Package up your ark: `ark package -m <manifest> -f <path-to-javascript>`
 
 ### The Manifest
 
@@ -130,6 +128,15 @@ To run a command conditionally based on whether your Ark is out-of-date, use the
       manifest: "./ark.cson"
       file: "js/application.js"
       -> console.log "The Ark must be rebuilt!"
+
+### The `list` Function
+
+You can also generate the full manifest, after glob expansion, with `list`, which returns an array of relative paths.
+
+    console.log "Your ark will include:", 
+      Ark.list
+        manifest: "./ark.cson"
+        file: "js/application.js"
 
 ## Status
 
