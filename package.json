@@ -1,6 +1,6 @@
 {
   "name": "ark",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "Packages code for the browser as Node modules.",
   "main": "lib/ark.js",
   "bin": {
@@ -26,7 +26,7 @@
     "c50n": "0.3.x",
     "coffee-script": "1.3.x",
     "eco": "1.1.x",
-    "fairmont": "0.4.x",
+    "fairmont": "0.5.x",
     "uglify-js": "1.3.x",
     "minimatch": "~0.2.12",
     "panda-glob": "0.1.x"

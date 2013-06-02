@@ -82,7 +82,8 @@ module.exports =
 
     ({manifest,file}, action) ->
       manifest = hoistManifest( manifest )
-      sources = globExpand( manifest )
+      sources = for path in globExpand( manifest )
+        resolve( manifest.root, path) 
       sources.push( manifest.file ) if manifest.file?
       destination = resolve( file )
       mtime sources, destination, action
