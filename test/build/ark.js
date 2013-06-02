@@ -7,78 +7,52 @@ var global = (function() {
   return {
     filesystem: {
       root: {
-        "test": {
+        "bar.coffee": {
           "__stat": {
-            "atime": "2013-06-02T03:49:49.000Z",
-            "ctime": "2013-06-02T03:51:40.000Z",
-            "mtime": "2013-06-02T03:51:40.000Z",
-            "size": 170,
-            "type": "directory"
+            "atime": "2013-06-02T09:23:24.000Z",
+            "ctime": "2013-06-02T03:52:57.000Z",
+            "mtime": "2013-01-25T18:48:59.000Z",
+            "size": 25,
+            "type": "file"
           },
-          "ark": {
-            "__stat": {
-              "atime": "2013-06-02T03:51:40.000Z",
-              "ctime": "2013-06-02T03:04:22.000Z",
-              "mtime": "2013-06-02T03:04:22.000Z",
-              "size": 272,
-              "type": "directory"
-            },
-            "bar.coffee": {
-              "__stat": {
-                "atime": "2013-06-02T03:51:40.000Z",
-                "ctime": "2013-05-31T16:14:12.000Z",
-                "mtime": "2013-01-25T18:48:59.000Z",
-                "size": 25,
-                "type": "file"
-              },
-              "__ref": "5e91caedd5be0dc0918d3aef0c737fc1"
-            },
-            "foo": {
-              "__stat": {
-                "atime": "2013-06-02T03:51:40.000Z",
-                "ctime": "2013-05-29T16:44:21.000Z",
-                "mtime": "2013-05-29T16:44:21.000Z",
-                "size": 102,
-                "type": "directory"
-              },
-              "bar.coffee": {
-                "__stat": {
-                  "atime": "2013-06-02T03:51:40.000Z",
-                  "ctime": "2013-06-02T03:06:01.000Z",
-                  "mtime": "2013-06-02T03:06:01.000Z",
-                  "size": 25,
-                  "type": "file"
-                },
-                "__ref": "5e91caedd5be0dc0918d3aef0c737fc1"
-              }
-            },
-            "foo.coffee": {
-              "__stat": {
-                "atime": "2013-06-02T03:51:40.000Z",
-                "ctime": "2013-05-31T16:14:12.000Z",
-                "mtime": "2013-01-25T18:48:59.000Z",
-                "size": 43,
-                "type": "file"
-              },
-              "__ref": "dc0cbd6a4d298b9fc70ec7639d071330"
-            },
-            "index.coffee": {
-              "__stat": {
-                "atime": "2013-06-02T03:51:40.000Z",
-                "ctime": "2013-06-02T03:06:08.000Z",
-                "mtime": "2013-06-02T03:06:08.000Z",
-                "size": 21,
-                "type": "file"
-              },
-              "__ref": "6de4a3d0070cf29a4cae682554f2f9a1"
-            }
-          }
+          "__ref": "5e91caedd5be0dc0918d3aef0c737fc1"
+        },
+        "foo.coffee": {
+          "__stat": {
+            "atime": "2013-06-02T09:23:24.000Z",
+            "ctime": "2013-05-31T16:14:12.000Z",
+            "mtime": "2013-01-25T18:48:59.000Z",
+            "size": 43,
+            "type": "file"
+          },
+          "__ref": "dc0cbd6a4d298b9fc70ec7639d071330"
+        },
+        "index.coffee": {
+          "__stat": {
+            "atime": "2013-06-02T09:23:24.000Z",
+            "ctime": "2013-06-02T03:06:08.000Z",
+            "mtime": "2013-06-02T03:06:08.000Z",
+            "size": 21,
+            "type": "file"
+          },
+          "__ref": "6de4a3d0070cf29a4cae682554f2f9a1"
+        },
+        "package.json": {
+          "__stat": {
+            "atime": "2013-06-02T09:23:24.000Z",
+            "ctime": "2013-06-02T03:52:58.000Z",
+            "mtime": "2013-01-25T18:48:59.000Z",
+            "size": 117,
+            "type": "file"
+          },
+          "__ref": "a8cc837098e9ff617147e4112b544603"
         }
       },
       content: {
         "5e91caedd5be0dc0918d3aef0c737fc1": "NWU5MWNhZWRkNWJlMGRjMDkxOGQzYWVmMGM3MzdmYzE=",
         "dc0cbd6a4d298b9fc70ec7639d071330": "ZGMwY2JkNmE0ZDI5OGI5ZmM3MGVjNzYzOWQwNzEzMzA=",
         "6de4a3d0070cf29a4cae682554f2f9a1": "NmRlNGEzZDAwNzBjZjI5YTRjYWU2ODI1NTRmMmY5YTE=",
+        "a8cc837098e9ff617147e4112b544603": "ewogICJuYW1lIjogInRlc3QiLAogICJ2ZXJzaW9uIjogIjAuMC4wIiwKICAiZGVzY3JpcHRpb24iOiAiSnVzdCBhIHRlc3QgcGFja2FnZSBmb3IgYXJrIiwKICAibWFpbiI6ICJpbmRleC5jb2ZmZWUiCn0K",
         "c4f9141dbd0d7a4e3dd3d1dc0a64c667": "YzRmOTE0MWRiZDBkN2E0ZTNkZDNkMWRjMGE2NGM2Njc=",
         "0426b7a6289080ce650637f0ac6e7e0c": "MDQyNmI3YTYyODkwODBjZTY1MDYzN2YwYWM2ZTdlMGM=",
         "a8aae685be6eeb8ec844ae9c4f5fd189": "YThhYWU2ODViZTZlZWI4ZWM4NDRhZTljNGY1ZmQxODk=",
@@ -116,14 +90,14 @@ var global = (function() {
 
         function: {
 
-          "5e91caedd5be0dc0918d3aef0c737fc1": // from: test/ark/foo/bar.coffee
+          "5e91caedd5be0dc0918d3aef0c737fc1": // from: bar.coffee
           function(exports, require, module, __filename, __dirname) {
 
             module.exports = "foobar";
 
           },
 
-          "dc0cbd6a4d298b9fc70ec7639d071330": // from: test/ark/foo.coffee
+          "dc0cbd6a4d298b9fc70ec7639d071330": // from: foo.coffee
           function(exports, require, module, __filename, __dirname) {
             var bar;
 
@@ -133,7 +107,7 @@ var global = (function() {
 
           },
 
-          "6de4a3d0070cf29a4cae682554f2f9a1": // from: test/ark/index.coffee
+          "6de4a3d0070cf29a4cae682554f2f9a1": // from: index.coffee
           function(exports, require, module, __filename, __dirname) {
             var foo;
 

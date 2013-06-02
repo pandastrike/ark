@@ -42,7 +42,7 @@ module.exports =
     
     # Generate a reference to the content. Avoid storing it twice
     # under different pathnames.
-    localPath = resolve( path )
+    localPath = resolve( bfs.local.root, path )
     return unless stat( localPath ).isFile()
     content = read( localPath )
     reference = md5( content )
@@ -58,8 +58,7 @@ module.exports =
     # Add the reference into the directory hierarchy.
     here = bfs.root
     unless directory == "."
-      # cwd = resolve( bfs.local.root )
-      cwd = ""
+      cwd = resolve( bfs.local.root )
       for part in directory.split("/")
         cwd = join( cwd, part )
         here = here[part] ?= __stat: bstat( cwd )
