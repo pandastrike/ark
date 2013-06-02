@@ -1,6 +1,0 @@
-#!/usr/bin/env coffee
-glob = require "glob"
-
-[_,_,pattern] = process.argv
-glob pattern, (error,files) ->
-  console.log files

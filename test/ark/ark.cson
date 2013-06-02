@@ -1,4 +1,4 @@
-root: "/Users/dan/Projects/ark/test"
+root: "test/ark"
 files: [
   "**/*.coffee"
   "package.json"

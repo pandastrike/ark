@@ -1,7 +1,7 @@
-{resolve} = require "path"
+{join,resolve} = require "path"
 {read,type,exists,stat,remove,uniq} = require "fairmont"
 CSON = require "c50n"
-glob = require "glob"
+glob = require "panda-glob"
 
 hoistManifest = (manifest) ->
   switch type( manifest )
@@ -10,17 +10,20 @@ hoistManifest = (manifest) ->
       if manifest == "-"
         CSON.parse( read("/dev/stdin") )
       else
-        CSON.parse( read( resolve( manifest ) ) )
+        _manifest = CSON.parse( read( resolve( manifest ) ) )
+        _manifest.file ?= manifest
+        _manifest
     else
       throw new TypeError("Invalid manifest")
   
+
 globExpand = ({root,files,exclude}) ->
   results = []
   for pattern in files
-    results = uniq( results.concat( glob.sync( pattern, cwd: root ) ) )
+    results = uniq( results.concat( glob( root, pattern ) ) )
   if exclude?
     for pattern in exclude
-      for path in glob.sync( pattern, cwd: root )
+      for path in glob( root, pattern ) 
         remove( results, path )
   results
     
@@ -73,14 +76,14 @@ module.exports =
       last = _mtime( destination )
       for path in sources
         if _mtime( path ) > last
-          action()
+          action?()
           return true
       return false 
 
     ({manifest,file}, action) ->
       manifest = hoistManifest( manifest )
-      {root,files} = manifest
-      sources = [ resolve( manifest), globExpand( manifest ) ]
+      sources = globExpand( manifest )
+      sources.push( manifest.file ) if manifest.file?
       destination = resolve( file )
       mtime sources, destination, action
       
