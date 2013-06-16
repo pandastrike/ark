@@ -26,6 +26,7 @@ commands =
         when "-t", "--mtime" then options.mtime = true
         when "-f", "--file" then options.file = argv.shift()
         when "-z", "--minify" then options.minify = true
+        when "-v", "--verbose" then options.verbose = true
         else usage( "Error: invalid argument '#{arg}'" )
         
     options.manifest ?= "./ark.cson"

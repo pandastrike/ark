@@ -32,6 +32,10 @@ COMMANDS
                                       WARNING: This does not appear to be
                                       working properly.
                                       
+    --verbose, -v                     Log information to help diagnose 
+                                      problems.
+                                      
+                                      
   ark [list|ls] <options>
   
   SYNOPSIS

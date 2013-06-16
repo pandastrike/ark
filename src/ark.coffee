@@ -47,10 +47,14 @@ module.exports =
       _beautify = require "./beautify"
       (code) -> _beautify code, indent_size: 2
     
-    ({manifest,compilers,minify,file}) ->
+    ({manifest,compilers,minify,file,verbose}) ->
       manifest = hoistManifest( manifest )
       {root,files,exclude, apis} = manifest
-      bfs = BFS.create( root )
+      logger = if verbose
+        (string) -> process.stderr.write "#{string}\n"
+      else
+        ->
+      bfs = BFS.create( root, logger )
       include( bfs.compilers, compilers) if compilers?
       BFS.addFile( bfs, _file ) for _file in globExpand( manifest ) 
       BFS.addAPI( bfs, api ) for api in apis

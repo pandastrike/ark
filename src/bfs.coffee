@@ -25,7 +25,7 @@ modularize = do ->
 
 module.exports =
 
-  create: (path) ->
+  create: (path,logger = ->) ->
     local: root: path
     compilers:
       ".coffee": (code) -> CoffeeScript.compile( code, bare: true )
@@ -33,8 +33,11 @@ module.exports =
     root: {}
     content: {}
     modules: api: {}, function: {}
+    logger: logger
     
   addFile: (bfs, path) ->
+    
+    bfs.logger "Adding file [#{path}]"
     
     directory = dirname path
     filename = basename path
