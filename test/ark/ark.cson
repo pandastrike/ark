@@ -1,5 +1,4 @@
-root: "test/ark"
-files: [
+include: [
   "**/*.coffee"
   "package.json"
 ]
