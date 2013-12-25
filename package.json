@@ -1,8 +1,8 @@
 {
   "name": "ark",
-  "version": "0.4.9",
+  "version": "0.5.0",
   "description": "Packages code for the browser as Node modules.",
-  "main": "lib/ark.js",
+  "main": "index.coffee",
   "bin": {
     "ark": "./bin/ark"
   },
@@ -29,10 +29,12 @@
     "fairmont": "0.5.x",
     "uglify-js": "1.3.x",
     "minimatch": "~0.2.12",
-    "panda-glob": "~0.1.2"
+    "panda-glob": "~0.1.2",
+    "express": "~3.4.7",
+    "connect": "~2.12.0"
   },
   "devDependencies": {
-    "docco": "0.3.x",
-    "node-system": "0.0.3"
+    "node-system": "0.0.3",
+    "testify": "~0.2.8"
   }
 }

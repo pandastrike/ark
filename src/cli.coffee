@@ -1,5 +1,6 @@
 {resolve} = require "path"
-{read} = require "fairmont"
+{read, write} = require "fairmont"
+{parse} = require "c50n"
 Ark = require "./ark"
 
 # Print usage with an optional error message 
@@ -7,7 +8,6 @@ usage = (message) ->
   process.stderr.write( "#{message}\n" ) if message?
   process.stderr.write( read( resolve( __dirname, "..", "doc", "USAGE" ) ) )
   process.exit( -1 )
-
 
 # The commands object - each ark command is a function taking the 
 # arguments given after the command
@@ -18,43 +18,50 @@ commands =
   #
   package: (argv...) ->
     
-    options = {}
-    
+    options =
+      path: "."
+      verbose: false
+      
     while argv.length > 0
       switch arg = argv.shift()
-        when "-m", "--manifest" then options.manifest = argv.shift()
-        when "-t", "--mtime" then options.mtime = true
-        when "-f", "--file" then options.file = argv.shift()
-        when "-z", "--minify" then options.minify = true
-        when "-v", "--verbose" then options.verbose = true
+        when "-p", "--path" then options.path = argv.shift()
+        when "-o", "--output" then options.output  = argv.shift()
+        when "-v", "--verbose" then options.logger = console.log
         else usage( "Error: invalid argument '#{arg}'" )
         
-    options.manifest ?= "./ark.cson"
-    if options.minify
-      process.stderr.write """
-        WARNING: The --minify option does not appear to be working properly.\n
-      """
+    input = resolve(options.path, "ark.cson")
     
-    if options.mtime
-      unless options.file?
-        usage("The --mtime options requires the --file option.") 
-      Ark.mtime options, -> Ark.package( options )
+    ark = do ->
+      {path, logger} = options
+      manifest = parse(read(input))
+      new Ark {path, manifest, logger}
+
+    if options.output?
+      output = resolve(options.output)
+      write(output, ark.package())
+
     else
-      Ark.package( options )    
+      console.log ark.package()
   
   list: ->
-    
-    options = {}
-    
+
+    options =
+      path: "."
+      
     while argv.length > 0
       switch arg = argv.shift()
-        when "-m", "--manifest" then options.manifest = argv.shift()
+        when "-p", "--path" then options.path = argv.shift()
         else usage( "Error: invalid argument '#{arg}'" )
         
-    options.manifest ?= "./ark.cson"
+    input = resolve(options.path, "ark.cson")
     
-    process.stdout.write( Ark.list( options ).sort().join("\n") )
-  
+    ark = do ->
+      {path} = options
+      manifest = parse(read(input))
+      new Ark {path, manifest}
+    
+    console.log ark.list()
+      
   ls: -> @list()
   
   help: -> usage()
@@ -66,7 +73,3 @@ commands =
 usage("Error: no command given") unless command?
 usage("Error: Invalid command '#{command}'") unless commands[command]
 commands[command](argv...)
-
-# TODO: add a command called check(?) to see a given file is out-of-date
-# relative to the manifest. Should be something that can be called from 
-# code as well, like Ark.package ... ex: Ark.check. Or ... Ark.each ?

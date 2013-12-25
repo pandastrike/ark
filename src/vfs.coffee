@@ -40,21 +40,34 @@ class VFS
     # default to no-op logger
     @logger ?= ->
 
+  get: (path) ->
+    here = @root
+    directory = dirname path
+    unless directory == "."
+      for part in directory.split(sep)
+        here = here?[part]
+    here?[basename(path)]
+    
   addFile: (path) ->
     @logger "Adding file [#{path}]"
-    
+
     directory = dirname path
     filename = basename path
     extension = extname path
-    
+
     # Generate a reference to the content. Avoid storing it twice
     # under different pathnames.
-    
     localPath = resolve(@path, path)
-    return unless stat(localPath).isFile()
+    info = stat(localPath)
+    return unless info.isFile()
+    record = @get(path)
+    vinfo = record?.__stat
+    if vinfo?.mtime.getTime() == info.mtime.getTime()
+      @logger "File [#{path}] already added and remains unchanged."
+      return
     content = read(localPath)
     reference = md5(content)
-    
+
     # Store a reference to the content, possibly compiling it first.
     unless extension in keys(VFS.compilers)
       @content[reference] = base64(content)
@@ -75,6 +88,9 @@ class VFS
   addAPI: (name) ->
     @logger "Adding API [#{name}]"
 
+    if @modules.api[name]?
+      @logger "API [#{name}] already added."
+      return
     # We use require's resolve here so we don't have to worry
     # about the extension.
     path = require.resolve(join(__dirname, "api", name))
