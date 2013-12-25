@@ -1,3 +1,2 @@
-module.exports =
-  middleware: require "./src/middleware"
-  
+module.exports = require "./src/ark"
+

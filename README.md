@@ -14,7 +14,7 @@ The obvious question is: *how is Ark different than browserify?*
 
 * Ark is more CoffeeScript-friendly. You don't need to add a transform or plugin to bundle CoffeeScript into your Ark. Also, most of Ark is actually implemented in CoffeeScript in case you want to fork or submit patches.
 
-* Ark uses a CSON manifest file to decide what to package up, so you have complete control over what's being shipped to the browser. Use glob expansion and exclusion to make it easy.
+* Ark uses a CSON manifest file with glob expansion to decide what to package up. You can easily see what's include with the `list` command (or, programmatically, with the `list` method).
 
 * Ark does *not* use the `package.json` `browser` field, or any other specification for generating your bundled JavaScript. Everything you need to know is in the manifest.
 
@@ -32,16 +32,15 @@ The obvious question is: *how is Ark different than browserify?*
 
 2. Add in a `package.json` file to set the entry point for your ark (using the `main` property). 
 
-3. Create a `manifest.cson` file with the list of files and emulated Node APIs you want to bundled in your ark.
+3. Create a `ark.cson` file with the list of files and emulated Node APIs you want to bundled in your ark.
 
-4. Package up your ark: `ark package -m <manifest> -f <path-to-javascript>`
+4. Package up your ark: `ark package -p <ark-directory> -o <path-to-javascript>`
 
 ### The Manifest
 
 The manifest file might look like this:
 
-    root: "/Users/dan/Projects/ark/test"
-    files: [
+    include: [
       "**/*.coffee"
       "package.json"
     ]
@@ -49,14 +48,13 @@ The manifest file might look like this:
             "https", "module", "path", "querystring", "stream", "sys", "tty", 
             "url", "util" ]
 
-That's it. There's never any question about which files or APIs are included, because you control it via the manifest. Also, we can use any glob pattern in our list of files to save typing.
+That's it. There's never any question about which files or APIs are included, because you control it via the manifest.
 
 #### Excluding Files
 
 You can also exclude files. For example, if you want to make sure that no files within test directories are committed, you might do something like this:
 
-    root: "/Users/dan/Projects/ark/test"
-    files: [
+    include: [
       "**/*.coffee"
       "package.json"
     ]
@@ -72,15 +70,7 @@ You can also exclude files. For example, if you want to make sure that no files 
 
 If you use glob expansion, you might want to see exactly what the result of the expansion is -- you can do this by using the list command:
 
-    ark ls -m <manifest>
-
-### Conditional Generation
-
-To package up your ark only if it's out-of-date, use the `-t` option:
-
-    ark package -m <manifest> -f <path-to-javascript> -t
-
-You can also use standard standard output for the bundled JavaScript. However, you can't use standard output with the `-t` option.
+    ark ls -p <manifest>
 
 ### More Details
 
@@ -94,15 +84,21 @@ You can also use Ark programmatically. It's pretty simple:
 
     Ark = require "ark"
     
-    Ark.package
-      manifest: "./ark.cson"
-      file: "js/application.js"
-      
+    ark = new Ark
+      path: "."
+      manifest:
+        include: [ "**/*.coffee", "package.json" ]
+        exclude: [ "**/test/**", "**/spec/**" ]
+        apis: [ "assert", "child_process", "crypto", "events", "fs", "http",  
+          "https", "module", "path", "querystring", "stream", "sys", "tty", 
+          "url", "util" ]
+    ark.package()      
+
 Other options include:
 
 * **compilers**. This is just an object with file extensions as keys and functions that take a string and transform it somehow. The default compilers include one for CoffeeScript, but using this mechanism, you can include others. 
 
-**Ex:** Suppose you want to compile Jade templates when you bundle your JavaScript so that they can simply be `require`d. You might write an Ark compiler like this:
+**Example** Suppose you want to compile Jade templates when you bundle your JavaScript so that they can simply be `require`d. You might write an Ark compiler like this:
 
     compileJade = do ->
       jade = require "jade"
@@ -111,34 +107,41 @@ Other options include:
         compileDebug: false
       (template) -> jade.compile template, options
       
-    Ark.package
-      manifest: "./ark.cson"
-      file: "js/application.js"
-      compilers: ".jade": compileJade
+    ark = new Ark
+      path: "."
+      compilers: jade: compileJade
+      manifest:
+        include: [ "**/*.coffee", "package.json" ]
+        exclude: [ "**/test/**", "**/spec/**" ]
+        apis: [ "assert", "child_process", "crypto", "events", "fs", "http",  
+          "https", "module", "path", "querystring", "stream", "sys", "tty", 
+          "url", "util" ]
       
-* **file**. This is just the path of the output file. If it's undefined, Ark will write to `stdout`.
-
-* **minify**. This is a flag to indicate whether you want to minify the code. If true, ark will run the generated JavaScript through Uglify.js.
-
-### The `mtime` Function
-
-To run a command conditionally based on whether your Ark is out-of-date, use the `mtime` function, like this:
-
-    Ark.mtime
-      manifest: "./ark.cson"
-      file: "js/application.js"
-      -> console.log "The Ark must be rebuilt!"
-
 ### The `list` Function
 
 You can also generate the full manifest, after glob expansion, with `list`, which returns an array of relative paths.
 
-    console.log "Your ark will include:", 
-      Ark.list
-        manifest: "./ark.cson"
-        file: "js/application.js"
+## Ark Middleware
+
+New in 0.5.0 is the ability to use Ark as connect/express-style  middleware so that you don't need a build step while developing. You can run it like this:
+
+    Ark = require "ark"
+    connect = require "connect"
+    app = connect()
+    app.use connect.static("public")
+    app.use Ark.middleware("my-ark-directory")
+
+The Ark middleware keeps a "live" copy of the Ark in memory and only updates files that have changed.
+
+## Roadmap
+
+We've temporarily removed support for minification and beautification, as well as `mtime` checks for the command-line tool. We expect to add these back soon.
+
+We also plan to add auto-generation of source maps and more sophistication to the middleware (for example, keeping the generated JavaScript cached so that it can just be returned directly if nothing has changed).
 
 ## Status
 
-Ark is under active development but is not yet production-ready.
+Ark is under active development and is still alpha-status. Please use with caution.
+
+
 

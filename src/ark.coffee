@@ -6,17 +6,20 @@ VFS = require "./vfs"
   
 class Ark
 
-  @minify: do ->
-    {parser,uglify} = require "uglify-js"
-    (code) ->
-      ast = parser.parse code
-      ast = uglify.ast_mangle ast
-      ast = uglify.ast_squeeze ast
-      uglify.gen_code ast
+  @middleware: ->
+    (require "./middleware")(arguments...)
+    
+  # @minify: do ->
+  #   {parser,uglify} = require "uglify-js"
+  #   (code) ->
+  #     ast = parser.parse code
+  #     ast = uglify.ast_mangle ast
+  #     ast = uglify.ast_squeeze ast
+  #     uglify.gen_code ast
 
-  @beautify: do ->
-    _beautify = require "./beautify"
-    (code) -> _beautify code, indent_size: 2
+  # @beautify: do ->
+  #   _beautify = require "./beautify"
+  #   (code) -> _beautify code, indent_size: 2
     
   constructor: ({@path, @manifest, compilers, @minify, @beautify, @logger}) ->
     @logger ?= -> # logger defaults to a no-op
