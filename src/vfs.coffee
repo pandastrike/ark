@@ -39,6 +39,7 @@ class VFS
     @modules = api: {}, function: {}
     # default to no-op logger
     @logger ?= ->
+    @compilers = VFS.compilers
 
   get: (path) ->
     here = @root
@@ -69,10 +70,10 @@ class VFS
     reference = md5(content)
 
     # Store a reference to the content, possibly compiling it first.
-    unless extension in keys(VFS.compilers)
+    unless extension in keys(@compilers)
       @content[reference] = base64(content)
     else
-      compile = @constructor.compilers[extension]
+      compile = @compilers[extension]
       @content[reference] = base64(reference)
       @modules.function[reference] = modularize(compile(content), path)
 
@@ -97,7 +98,7 @@ class VFS
     code = read(path)
     reference = md5(code)
     extension = extname(path)
-    compile = VFS.compilers[extension]
+    compile = @compilers[extension]
 
     # Instead of adding the reference to the filesystem has, we add it to a
     # special hash just for api modules.            

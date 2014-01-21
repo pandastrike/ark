@@ -1,6 +1,6 @@
 {
   "name": "ark",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Packages code for the browser as Node modules.",
   "main": "index.coffee",
   "bin": {
