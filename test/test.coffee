@@ -1,28 +1,26 @@
 assert = require "assert"
-Testify = require "testify"
+Amen = require "amen"
 {resolve,join} = require "path"
 Ark = require "../src/ark"
-{read,stat,exists,timer} = require "fairmont"
-{parse} = require "c50n"
-system = require "node-system"
-sh = (command) ->
-  console.log command
-  system command
+{call, read, stat, exists, timer, shell} = require "fairmont"
+yaml = require "js-yaml"
 
-build = resolve(__dirname, "build")
-path = resolve(__dirname, "ark")
-manifest = parse(read(join(path, "ark.cson")))
+call ->
 
-sh "rm -rf #{build}"
-sh "mkdir -p #{build}"
+  build = resolve __dirname, "build"
+  path = resolve __dirname, "ark"
+  manifest = yaml.safeLoad yield read (join path, "ark.yml")
 
-ark = new Ark {path, manifest}
 
-Testify.test "Ark:", (context) ->
-  context.test "ark.list", (context) ->
-    context.test "returns the correct number of files", ->
+  shell "rm -rf #{build}"
+  shell "mkdir -p #{build}"
+
+  ark = new Ark {path, manifest}
+
+  Amen.describe "Ark:", (context) ->
+
+    context.test "ark.list returns the correct number of files", ->
       assert ark.list().length == 4
-  context.test "ark.package", (context) ->
-    context.test "creates the JavaScript of the expected size", ->
-      assert ark.package().length == 108898
 
+    context.test "ark.package creates the JavaScript of the expected size", ->
+      assert (yield ark.package()).length == 109189
